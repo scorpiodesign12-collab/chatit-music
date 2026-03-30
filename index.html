@@ -454,7 +454,7 @@ function renderList(){
     return;
   }
   list.forEach((t,row)=>{
-    const globalIdx = showFav ? TRACKS.indexOf(t) : row;
+    const globalIdx = currentView === 'fav' ? TRACKS.indexOf(t) : row;
     const li = document.createElement('div');
     li.className = 'li'; li.dataset.idx = globalIdx;
     li.innerHTML = `
@@ -577,6 +577,8 @@ async function doAlbums(append=false){
 }
 
 document.getElementById('loadMoreAlbumsBtn').addEventListener('click',()=>{ albumsPage++; doAlbums(true); });
+
+function updUI(){
   document.querySelectorAll('.li').forEach(el=>{
     const i = parseInt(el.dataset.idx);
     el.classList.toggle('a', i===cur);
