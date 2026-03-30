@@ -316,10 +316,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
           <div class="fp-name" id="fpName">—</div>
           <div class="fp-artist" id="fpArtist">—</div>
           <div class="fp-tags" id="fpTags"></div>
-          <a class="fp-dl" id="fpDl" href="#" download target="_blank">
+          <button class="fp-dl" id="fpDl" style="cursor:pointer">
             <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
             Скачать MP3
-          </a>
+          </button>
         </div>
         <div class="pgw">
           <div class="pgt" id="pgt"><div class="pgf" id="pgf"></div></div>
@@ -363,6 +363,19 @@ const favs = new Set(JSON.parse(localStorage.getItem('jamendo_favs') || '[]'));
 const au = document.getElementById('au');
 
 function fmt(s){if(!s||isNaN(s))return'—';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')}
+
+async function downloadTrack(url, name){
+  try{
+    const r = await fetch(url);
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (name||'track').replace(/[\\/:*?"<>|]/g,'_') + '.mp3';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }catch(e){ window.open(url); }
+}
 
 // ── МОИ ТРЕКИ (Cloudinary) ──
 const CDN = 'https://res.cloudinary.com/dkjrcyiiw/video/upload/';
@@ -422,27 +435,29 @@ function makeTrackCover(idx, title) {
   return genCover(title, c1, c2);
 }
 
+const EMINEM_SHOW_COVER = 'https://upload.wikimedia.org/wikipedia/en/3/35/Eminem_-_The_Eminem_Show.jpg';
+
 const MY_TRACKS = [
-  { id:'my1',  name:'Hailie\'s Song',               artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(0,"Hailie's Song"), src:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           download:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           duration:320, tags:['hip-hop'] },
-  { id:'my2',  name:'Cleanin\' Out My Closet',      artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(1,"Cleanin' Out"), src:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   download:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   duration:299, tags:['hip-hop'] },
-  { id:'my3',  name:'Business',                     artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(2,'Business'), src:CDN+'Eminem_-_Business_emn5kn.mp3',                                download:CDN+'Eminem_-_Business_emn5kn.mp3',                                duration:252, tags:['hip-hop'] },
-  { id:'my4',  name:'Say What You Say',             artist:'Eminem feat. Dr. Dre', album:'The Eminem Show', cover:makeTrackCover(3,'Say What You Say'), src:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', download:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', duration:309, tags:['hip-hop'] },
-  { id:'my5',  name:'Drips',                        artist:'Eminem feat. Obie Trice', album:'The Eminem Show', cover:makeTrackCover(4,'Drips'), src:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    download:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    duration:285, tags:['hip-hop'] },
-  { id:'my6',  name:'Curtains Close (Skit)',        artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(5,'Curtains Close'), src:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           download:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           duration:62,  tags:['hip-hop'] },
-  { id:'my7',  name:'My Dad\'s Gone Crazy',         artist:'Eminem feat. Hailie Jade', album:'The Eminem Show', cover:makeTrackCover(6,"My Dad's Gone"), src:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', download:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', duration:267, tags:['hip-hop'] },
-  { id:'my8',  name:'\'Till I Collapse',            artist:'Eminem feat. Nate Dogg', album:'The Eminem Show', cover:makeTrackCover(7,"'Till I Collapse"), src:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   download:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   duration:297, tags:['hip-hop'] },
-  { id:'my9',  name:'Superman',                     artist:'Eminem feat. Dina Rae', album:'The Eminem Show', cover:makeTrackCover(8,'Superman'), src:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       download:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       duration:350, tags:['hip-hop'] },
-  { id:'my10', name:'When The Music Stops',         artist:'Eminem feat. D12', album:'The Eminem Show', cover:makeTrackCover(9,'When Music Stops'), src:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    download:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    duration:269, tags:['hip-hop'] },
-  { id:'my11', name:'White America',                artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(10,'White America'), src:CDN+'Eminem_-_White_America_rfazrr.mp3',                            download:CDN+'Eminem_-_White_America_rfazrr.mp3',                            duration:300, tags:['hip-hop'] },
-  { id:'my12', name:'Sing For The Moment',          artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(11,'Sing For Moment'), src:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      download:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      duration:340, tags:['hip-hop'] },
-  { id:'my13', name:'Square Dance',                 artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(12,'Square Dance'), src:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             download:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             duration:298, tags:['hip-hop'] },
-  { id:'my14', name:'Without Me',                   artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(13,'Without Me'), src:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               download:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               duration:290, tags:['hip-hop'] },
-  { id:'my15', name:'Say Goodbye Hollywood',        artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(14,'Say Goodbye'), src:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    download:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    duration:270, tags:['hip-hop'] },
-  { id:'my16', name:'Soldier',                      artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(15,'Soldier'), src:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  download:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  duration:285, tags:['hip-hop'] },
-  { id:'my17', name:'The Kiss (Skit)',               artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(16,'The Kiss'), src:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          download:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          duration:90,  tags:['hip-hop'] },
-  { id:'my18', name:'Steve Berman (Skit)',           artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(17,'Steve Berman'), src:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      download:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      duration:80,  tags:['hip-hop'] },
-  { id:'my19', name:'Paul Rosenberg (Skit)',         artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(18,'Paul Rosenberg'), src:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    download:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    duration:70,  tags:['hip-hop'] },
-  { id:'my20', name:'Business (Instrumental)',       artist:'Eminem', album:'The Eminem Show', cover:makeTrackCover(19,'Business Instr.'), src:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 download:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 duration:252, tags:['hip-hop'] },
+  { id:'my1',  name:'Hailie\'s Song',               artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           download:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           duration:320, tags:['hip-hop'] },
+  { id:'my2',  name:'Cleanin\' Out My Closet',      artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   download:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   duration:299, tags:['hip-hop'] },
+  { id:'my3',  name:'Business',                     artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Business_emn5kn.mp3',                                download:CDN+'Eminem_-_Business_emn5kn.mp3',                                duration:252, tags:['hip-hop'] },
+  { id:'my4',  name:'Say What You Say',             artist:'Eminem feat. Dr. Dre', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', download:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', duration:309, tags:['hip-hop'] },
+  { id:'my5',  name:'Drips',                        artist:'Eminem feat. Obie Trice', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    download:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    duration:285, tags:['hip-hop'] },
+  { id:'my6',  name:'Curtains Close (Skit)',        artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           download:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           duration:62,  tags:['hip-hop'] },
+  { id:'my7',  name:'My Dad\'s Gone Crazy',         artist:'Eminem feat. Hailie Jade', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', download:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', duration:267, tags:['hip-hop'] },
+  { id:'my8',  name:'\'Till I Collapse',            artist:'Eminem feat. Nate Dogg', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   download:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   duration:297, tags:['hip-hop'] },
+  { id:'my9',  name:'Superman',                     artist:'Eminem feat. Dina Rae', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       download:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       duration:350, tags:['hip-hop'] },
+  { id:'my10', name:'When The Music Stops',         artist:'Eminem feat. D12', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    download:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    duration:269, tags:['hip-hop'] },
+  { id:'my11', name:'White America',                artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_White_America_rfazrr.mp3',                            download:CDN+'Eminem_-_White_America_rfazrr.mp3',                            duration:300, tags:['hip-hop'] },
+  { id:'my12', name:'Sing For The Moment',          artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      download:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      duration:340, tags:['hip-hop'] },
+  { id:'my13', name:'Square Dance',                 artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             download:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             duration:298, tags:['hip-hop'] },
+  { id:'my14', name:'Without Me',                   artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               download:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               duration:290, tags:['hip-hop'] },
+  { id:'my15', name:'Say Goodbye Hollywood',        artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    download:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    duration:270, tags:['hip-hop'] },
+  { id:'my16', name:'Soldier',                      artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  download:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  duration:285, tags:['hip-hop'] },
+  { id:'my17', name:'The Kiss (Skit)',               artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          download:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          duration:90,  tags:['hip-hop'] },
+  { id:'my18', name:'Steve Berman (Skit)',           artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      download:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      duration:80,  tags:['hip-hop'] },
+  { id:'my19', name:'Paul Rosenberg (Skit)',         artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    download:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    duration:70,  tags:['hip-hop'] },
+  { id:'my20', name:'Business (Instrumental)',       artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 download:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 duration:252, tags:['hip-hop'] },
 ];
 
 // ── API ──
@@ -474,6 +489,11 @@ async function fetchTracks(query='', genre='', page=1){
     }));
   }catch(e){ console.error('Fetch error:', e); return []; }
 }
+
+// ── МОИ АЛЬБОМЫ ──
+const MY_ALBUMS = [
+  { id:'myalb1', name:'The Eminem Show', artist:'Eminem', cover:'https://upload.wikimedia.org/wikipedia/en/3/35/Eminem_-_The_Eminem_Show.jpg' },
+];
 
 async function fetchAlbums(query='', page=1){
   if(!CLIENT_ID) return [];
@@ -530,7 +550,7 @@ function renderList(){
         <button class="fav-btn" data-idx="${globalIdx}" title="Избранное">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
-        ${t.download?`<a class="dl-btn" href="${t.download}" download title="Скачать"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></a>`:''}
+        ${t.download?`<button class="dl-btn" data-url="${t.download}" data-name="${t.name}" title="Скачать"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></button>`:''}
       </div>
       <div class="li-du">${fmt(t.duration)}</div>`;
     li.addEventListener('click', e=>{
@@ -543,6 +563,11 @@ function renderList(){
       if(favs.has(idx)) favs.delete(idx); else favs.add(idx);
       localStorage.setItem('jamendo_favs', JSON.stringify([...favs]));
       updUI();
+    });
+    const dlBtn = li.querySelector('.dl-btn');
+    if(dlBtn) dlBtn.addEventListener('click', e=>{
+      e.stopPropagation();
+      downloadTrack(e.currentTarget.dataset.url, e.currentTarget.dataset.name);
     });
     ml.appendChild(li);
   });
@@ -627,7 +652,7 @@ async function doAlbums(append=false){
   }
   const results = await fetchAlbums(currentQuery, albumsPage);
   if(append) albumsData=[...albumsData,...results];
-  else albumsData=results;
+  else albumsData=[...MY_ALBUMS, ...results];
   renderAlbums(append);
   lmw.style.display = results.length===24 ? 'flex' : 'none';
 }
@@ -687,8 +712,10 @@ function load(i, play=false){
   const tagsEl = document.getElementById('fpTags');
   tagsEl.innerHTML = (t.tags||[]).map(tag=>`<span class="fp-tag">${tag}</span>`).join('');
   const dlEl = document.getElementById('fpDl');
-  if(t.download){ dlEl.href = t.download; dlEl.style.display='inline-flex'; }
-  else dlEl.style.display='none';
+  if(t.download){
+    dlEl.style.display='inline-flex';
+    dlEl.onclick = () => downloadTrack(t.download, t.name);
+  } else dlEl.style.display='none';
   if(play){ au.play(); setPlaying(true); }
   else setPlaying(false);
   renderSidebar();
