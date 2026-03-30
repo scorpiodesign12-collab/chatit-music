@@ -7,7 +7,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;background:#111;color:#e8e8e8;user-select:none}
-:root{--sb:#171717;--card:#1e1e1e;--border:#282828;--sub:#777;--muted:#444;--green:#4ade80;--hover:#252525;--accent:#fff}
+:root{--sb:#171717;--card:#1e1e1e;--border:#282828;--sub:#777;--muted:#444;--green:#ffffff;--hover:#252525;--accent:#fff}
 
 /* ── LAYOUT ── */
 .app{display:flex;height:100vh;width:100vw;overflow:hidden}
@@ -435,12 +435,14 @@ function renderList(){
 function renderSidebar(){
   const sl = document.getElementById('sbList');
   sl.innerHTML = '';
-  const list = cur >= 0 ? TRACKS : [];
-  const show = list.slice(Math.max(0, cur-2), cur+8);
-  show.forEach(t=>{
+  if(cur < 0 || !TRACKS.length){ sl.innerHTML='<div style="padding:8px 10px;font-size:12px;color:var(--muted)">Ничего не играет</div>'; return; }
+  // показываем треки вокруг текущего
+  const start = Math.max(0, cur - 2);
+  const end = Math.min(TRACKS.length, cur + 8);
+  TRACKS.slice(start, end).forEach(t=>{
     const i = TRACKS.indexOf(t);
     const sr = document.createElement('div');
-    sr.className = 'tr'; sr.dataset.idx = i;
+    sr.className = 'tr' + (i===cur?' a':''); sr.dataset.idx = i;
     sr.innerHTML = `
       <img class="tr-th" src="${t.cover}" alt="${t.name}" loading="lazy">
       <div class="tr-i">
@@ -450,6 +452,11 @@ function renderSidebar(){
       <div class="meq">${rndBars('mb',3,[4,10])}</div>`;
     sr.addEventListener('click', ()=>openPlayer(i));
     sl.appendChild(sr);
+  });
+  // анимация для текущего
+  document.querySelectorAll('.tr').forEach(el=>{
+    const i = parseInt(el.dataset.idx);
+    el.querySelectorAll('.mb').forEach(b=>b.classList.toggle('an', i===cur&&playing));
   });
 }
 
@@ -479,10 +486,11 @@ function updUI(){
     el.querySelectorAll('.lpb').forEach(b=>b.classList.toggle('an', i===cur&&playing));
     const fb = el.querySelector('.fav-btn');
     if(fb){
-      fb.classList.toggle('on', favs.has(i));
+      const isFav = favs.has(i);
+      fb.classList.toggle('on', isFav);
       const sv = fb.querySelector('svg');
-      sv.style.fill = favs.has(i)?'#f43f5e':'none';
-      sv.style.stroke = favs.has(i)?'#f43f5e':'#777';
+      sv.style.fill = isFav ? '#fff' : 'none';
+      sv.style.stroke = isFav ? '#fff' : '#777';
     }
   });
   document.querySelectorAll('.tr').forEach(el=>{
@@ -521,10 +529,8 @@ function load(i, play=false){
   document.getElementById('pgf').style.width = '0%';
   document.getElementById('tc').textContent = '0:00';
   document.getElementById('tt').textContent = fmt(t.duration);
-  // tags
   const tagsEl = document.getElementById('fpTags');
   tagsEl.innerHTML = (t.tags||[]).map(tag=>`<span class="fp-tag">${tag}</span>`).join('');
-  // download link
   const dlEl = document.getElementById('fpDl');
   if(t.download){ dlEl.href = t.download; dlEl.style.display='inline-flex'; }
   else dlEl.style.display='none';
@@ -657,6 +663,7 @@ async function doSearch(append=false){
   }
   renderList();
   renderSidebar();
+  renderQueue();
   lmw.style.display = results.length===20 ? 'flex' : 'none';
 }
 
@@ -667,40 +674,10 @@ document.getElementById('loadMoreBtn').addEventListener('click',()=>{
 
 // ── API KEY ──
 function checkApiKey(){
-  const banner = document.getElementById('apiBanner');
-  if(CLIENT_ID){
-    banner.style.display='none';
-    renderGenres();
-    doSearch();
-  } else {
-    banner.style.display='flex';
-    // показываем пустое состояние с подсказкой
-    document.getElementById('mainList').innerHTML=`<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>Введи API ключ выше чтобы начать</div>`;
-  }
+  renderGenres();
+  doSearch();
 }
-document.getElementById('apiKeySave').addEventListener('click',async()=>{
-  const v=document.getElementById('apiKeyInput').value.trim();
-  if(!v)return;
-  // проверяем что ключ рабочий
-  const btn=document.getElementById('apiKeySave');
-  btn.textContent='...';
-  try{
-    const r=await fetch(`${BASE}/tracks/?client_id=${v}&format=json&limit=1`);
-    const d=await r.json();
-    if(d.headers?.status==='success'){
-      CLIENT_ID=v;
-      localStorage.setItem('jamendo_client_id',v);
-      btn.textContent='Сохранить';
-      checkApiKey();
-    } else {
-      btn.textContent='Ошибка!';
-      setTimeout(()=>btn.textContent='Сохранить',2000);
-    }
-  }catch(e){
-    btn.textContent='Нет сети';
-    setTimeout(()=>btn.textContent='Сохранить',2000);
-  }
-});
+// нет кнопки сохранения — ключ зашит
 
 // ── MOBILE NAV ──
 function switchTab(fav){
