@@ -746,24 +746,38 @@ document.getElementById('searchClear').addEventListener('click',()=>{
 });
 
 async function doSearch(append=false){
-  if(!CLIENT_ID) return;
   const ml=document.getElementById('mainList');
   const lmw=document.getElementById('loadMoreWrap');
-  if(!append){
+  const isHome = !currentQuery && !currentGenre && currentPage===1 && !append;
+
+  // Сразу показываем свои треки на главной — не ждём API
+  if(isHome){
+    TRACKS = [...MY_TRACKS];
+    renderList();
+    renderSidebar();
+    renderQueue();
+    ml.insertAdjacentHTML('beforeend','<div id="jamendoLoading" class="state-msg" style="height:60px"><div class="spinner"></div></div>');
+  } else if(!append){
     ml.innerHTML=`<div class="state-msg"><div class="spinner"></div>Загружаем треки...</div>`;
     lmw.style.display='none';
   }
+
+  if(!CLIENT_ID) return;
   const results = await fetchTracks(currentQuery, currentGenre, currentPage);
-  // Добавляем свои треки в начало на первой странице без фильтров
-  if(!append && currentPage===1 && !currentQuery && !currentGenre){
+
+  const loadingEl = document.getElementById('jamendoLoading');
+  if(loadingEl) loadingEl.remove();
+
+  if(isHome){
     TRACKS = [...MY_TRACKS, ...results];
   } else if(append){
     TRACKS=[...TRACKS,...results];
   } else {
-    TRACKS=results;
+    TRACKS = results.length ? results : (currentQuery ? [] : [...MY_TRACKS]);
   }
+
   if(!TRACKS.length){
-    ml.innerHTML=`<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${currentQuery?'По запросу «'+currentQuery+'» ничего не найдено':'Нет треков. Проверь Client ID'}</div>`;
+    ml.innerHTML=`<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${currentQuery?'По запросу «'+currentQuery+'» ничего не найдено':'Нет треков'}</div>`;
     lmw.style.display='none';
     return;
   }
