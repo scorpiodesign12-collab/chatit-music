@@ -7,19 +7,19 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;background:#111;color:#e8e8e8;user-select:none}
-:root{--sb:#171717;--card:#1e1e1e;--border:#282828;--sub:#777;--muted:#444;--green:#ffffff;--hover:#252525;--accent:#fff}
+:root{--sb:#171717;--card:#1e1e1e;--border:#282828;--sub:#777;--muted:#444;--green:#1db954;--hover:#252525;--accent:#1db954}
 
-/* ── LAYOUT ── */
 .app{display:flex;height:100vh;width:100vw;overflow:hidden}
 
 /* Sidebar */
 .sidebar{width:230px;min-width:230px;background:var(--sb);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .sb-head{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
 .logo{font-size:20px;font-weight:800;letter-spacing:-1px;color:#fff}
-.logo span{font-style:italic;font-weight:400;color:#aaa}
+.logo span{font-style:italic;font-weight:400;color:var(--green)}
 .sb-nav{padding:12px 10px 6px}
 .ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;font-size:13px;color:var(--sub);cursor:pointer;transition:background .15s,color .15s;margin-bottom:2px}
 .ni:hover,.ni.a{background:var(--card);color:#e8e8e8}
+.ni.a{color:var(--green)}
 .sb-sec{padding:14px 18px 8px;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase}
 .sb-list{flex:1;overflow-y:auto;padding:0 10px 12px}
 .sb-list::-webkit-scrollbar{width:3px}
@@ -40,33 +40,53 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
 
 /* Main */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.mh{height:54px;min-height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 20px}
+.mh{height:64px;min-height:64px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 24px}
 
-/* Search bar */
-.search-wrap{flex:1;position:relative;max-width:420px}
-.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;fill:var(--sub);pointer-events:none}
-#searchInput{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px 8px 34px;font-size:13px;color:#e8e8e8;outline:none;transition:border .15s}
-#searchInput::placeholder{color:var(--sub)}
-#searchInput:focus{border-color:#555}
-.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--sub);cursor:pointer;font-size:16px;display:none;line-height:1}
+/* Search bar — Spotify style */
+.search-wrap{flex:1;position:relative;max-width:480px}
+.search-wrap svg.s-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:#888;pointer-events:none;transition:fill .15s}
+.search-wrap:focus-within svg.s-ico{fill:#fff}
+#searchInput{width:100%;background:#2a2a2a;border:2px solid transparent;border-radius:30px;padding:11px 14px 11px 44px;font-size:14px;color:#fff;outline:none;transition:background .2s,border-color .2s;font-weight:500}
+#searchInput::placeholder{color:#888;font-weight:400}
+#searchInput:focus{background:#333;border-color:var(--green)}
+.search-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:#888;cursor:pointer;font-size:18px;display:none;line-height:1;transition:color .15s}
+.search-clear:hover{color:#fff}
 .genre-wrap{display:flex;gap:6px;overflow-x:auto;padding:0 2px}
 .genre-wrap::-webkit-scrollbar{display:none}
 .genre-btn{padding:5px 12px;border-radius:20px;font-size:12px;background:var(--card);border:1px solid var(--border);color:var(--sub);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
 .genre-btn:hover{color:#e8e8e8;border-color:#555}
-.genre-btn.a{background:#fff;color:#000;border-color:#fff;font-weight:600}
+.genre-btn.a{background:var(--green);color:#000;border-color:var(--green);font-weight:600}
 
 .content{flex:1;overflow-y:auto;position:relative}
 .content::-webkit-scrollbar{width:5px}
 .content::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
-/* Loading / empty states */
+/* Top Tracks Banner */
+.top-banner{padding:20px 24px 8px}
+.top-banner-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.top-banner-title svg{width:22px;height:22px;fill:var(--green)}
+.top-tracks-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.top-tracks-row::-webkit-scrollbar{height:3px}
+.top-tracks-row::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.top-card{min-width:160px;max-width:160px;background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:transform .15s,background .15s;flex-shrink:0;position:relative}
+.top-card:hover{transform:translateY(-3px);background:var(--hover)}
+.top-card-img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--border)}
+.top-card-info{padding:8px 10px 10px}
+.top-card-name{font-size:12px;font-weight:600;color:#e8e8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.top-card-artist{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-card-plays{font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px;margin-top:4px}
+.top-card-plays svg{width:11px;height:11px;fill:var(--green)}
+.top-card-badge{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.75);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;letter-spacing:.5px}
+
+/* State msgs */
 .state-msg{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:10px;color:var(--muted);font-size:13px}
 .state-msg svg{width:36px;height:36px;fill:var(--muted);opacity:.5}
 .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* Track list */
-.lv{padding:16px 20px}
+.lv{padding:12px 24px 20px}
+.lv-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:12px;padding-top:4px}
 .lh{display:grid;grid-template-columns:36px 1fr 140px 36px 60px;gap:10px;align-items:center;padding:0 10px 10px;border-bottom:1px solid var(--border);margin-bottom:6px;font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.6px;text-transform:uppercase}
 .li{display:grid;grid-template-columns:36px 1fr 140px 36px 60px;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:2px}
 .li:hover{background:var(--hover)}
@@ -82,9 +102,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
 .li-mt{min-width:0}
 .li-n{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;color:#e8e8e8}
 .li.a .li-n{color:var(--green)}
-.li-ar{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-ar{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.explicit-badge{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:3px;background:#777;color:#111;font-size:8px;font-weight:900;flex-shrink:0;letter-spacing:0}
 .li-al{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* fav */
 .fav-btn{background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:transform .15s;opacity:.35}
 .fav-btn:hover{opacity:1;transform:scale(1.15)}
 .fav-btn.on{opacity:1}
@@ -93,9 +113,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
 .dl-btn:hover{opacity:1}
 .dl-btn svg{width:15px;height:15px;fill:var(--sub)}
 .li-du{font-size:12px;color:var(--muted);text-align:right}
-.load-more{display:flex;justify-content:center;padding:16px}
-.load-more-btn{padding:8px 24px;border-radius:20px;background:var(--card);border:1px solid var(--border);color:#e8e8e8;font-size:13px;cursor:pointer;transition:background .15s}
-.load-more-btn:hover{background:var(--hover)}
+
 /* Album cards */
 .alb-card{background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,background .15s;border:1px solid var(--border)}
 .alb-card:hover{transform:translateY(-3px);background:var(--hover)}
@@ -104,76 +122,98 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
 .alb-name{font-size:13px;font-weight:600;color:#e8e8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
 .alb-artist{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ── FULLSCREEN PLAYER ── */
-.fp{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.fp-bg{position:absolute;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(24px);opacity:0;transition:opacity .4s ease}
+/* ── FULLSCREEN PLAYER — Spotify Style ── */
+.fp{position:fixed;inset:0;z-index:200;display:flex;align-items:stretch;justify-content:stretch;overflow:hidden}
+.fp-bg{position:absolute;inset:0;opacity:0;transition:opacity .4s ease}
 .fp.open .fp-bg{opacity:1}
-.fp-inner{position:relative;display:flex;width:min(900px,96vw);max-height:92vh;background:#181818;border-radius:24px;overflow:hidden;border:1px solid var(--border);box-shadow:0 40px 120px rgba(0,0,0,.8);transform:translateY(100vh);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+.fp-inner{position:relative;display:flex;width:100%;height:100%;transform:translateY(100vh);transition:transform .45s cubic-bezier(.22,1,.36,1);flex-direction:column}
 .fp.open .fp-inner{transform:translateY(0)}
 .fp.closing .fp-inner{transform:translateY(100vh)}
 .fp.closing .fp-bg{opacity:0}
-.fp-left{width:380px;min-width:380px;position:relative;overflow:hidden;background:#111;flex-shrink:0}
-.fp-cover{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .4s}
-.fp-cover-fade{position:absolute;inset:0;background:linear-gradient(to right,transparent 55%,#181818);pointer-events:none}
-.fp-wave{position:absolute;bottom:0;left:0;right:0;height:80px;display:flex;align-items:flex-end;justify-content:center;gap:2.5px;padding:0 18px 16px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);opacity:0;transition:opacity .4s}
-.fp-wave.on{opacity:1}
-.wb{width:3.5px;border-radius:4px;background:rgba(255,255,255,.8);height:3px}
-.wb.an{animation:eq var(--d,.5s) ease-in-out infinite alternate;animation-delay:var(--dl,0s)}
-.fp-right{flex:1;padding:32px 28px 24px;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto;min-width:0}
-.fp-right::-webkit-scrollbar{width:3px}
-.fp-right::-webkit-scrollbar-thumb{background:var(--border)}
-.fp-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--sub);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;z-index:5}
-.fp-close:hover{background:rgba(255,255,255,.16);color:#e8e8e8}
-.fp-info{margin-bottom:24px}
-.fp-name{font-size:26px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px;line-height:1.2;color:#fff}
-.fp-artist{font-size:14px;color:var(--sub);margin-bottom:6px}
-.fp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.fp-tag{font-size:10px;padding:3px 8px;border-radius:20px;background:var(--card);color:var(--sub);border:1px solid var(--border)}
-.fp-dl{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid var(--border);color:#e8e8e8;font-size:12px;cursor:pointer;text-decoration:none;transition:background .15s}
-.fp-dl:hover{background:rgba(255,255,255,.12)}
+
+/* Cover fills whole screen */
+.fp-cover-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(80px) brightness(.4);transform:scale(1.1);pointer-events:none}
+.fp-cover-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);pointer-events:none}
+
+/* Back button */
+.fp-back{position:absolute;top:18px;left:18px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.4);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;transition:background .15s}
+.fp-back:hover{background:rgba(0,0,0,.7)}
+.fp-back svg{width:20px;height:20px;fill:currentColor}
+
+/* Content layout */
+.fp-content{position:relative;z-index:2;display:flex;flex-direction:column;height:100%;padding:70px 32px 32px;justify-content:flex-end;max-width:560px;margin:0 auto;width:100%}
+.fp-album-art{width:min(300px,65vw);height:min(300px,65vw);border-radius:16px;object-fit:cover;box-shadow:0 20px 60px rgba(0,0,0,.6);margin:0 auto 28px;display:block;flex-shrink:0}
+
+/* Desktop: side-by-side */
+@media(min-width:700px){
+  .fp-inner{flex-direction:row}
+  .fp-content{flex-direction:row;align-items:center;justify-content:center;max-width:1000px;padding:70px 48px 48px;gap:48px}
+  .fp-left-side{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+  .fp-album-art{margin:0 0 0 0}
+  .fp-right-side{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+}
+@media(max-width:699px){
+  .fp-content{padding:60px 24px 28px;overflow-y:auto}
+  .fp-left-side,.fp-right-side{width:100%}
+  .fp-left-side{display:flex;flex-direction:column;align-items:center}
+  .fp-album-art{width:min(260px,75vw);height:min(260px,75vw)}
+}
+
+.fp-track-info{margin-bottom:20px}
+.fp-name{font-size:28px;font-weight:800;letter-spacing:-.5px;color:#fff;margin-bottom:4px;line-height:1.2}
+.fp-artist{font-size:15px;color:rgba(255,255,255,.7);margin-bottom:8px}
+.fp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.fp-tag{font-size:10px;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15)}
+.fp-explicit{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;background:rgba(255,255,255,.5);color:#000;font-size:9px;font-weight:900;margin-right:4px;vertical-align:middle}
+.fp-dl{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;cursor:pointer;transition:background .15s;font-weight:600}
+.fp-dl:hover{background:rgba(255,255,255,.22)}
 .fp-dl svg{width:13px;height:13px;fill:currentColor}
-.pgw{margin-bottom:20px}
-.pgt{width:100%;height:3px;background:var(--border);border-radius:99px;position:relative;cursor:pointer;margin-bottom:8px}
-.pgf{height:100%;background:#fff;border-radius:99px;width:0%;transition:width .2s linear;position:relative}
-.pgf::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .2s}
-.pgt:hover .pgf::after{transform:translateY(-50%) scale(1.3)}
-.t2{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
-.cr{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:22px}
-.cb{width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .15s,transform .15s,background .15s}
-.cb:hover{color:#e8e8e8;background:var(--hover)}
+
+/* Progress */
+.pgw{margin-bottom:18px}
+.pgt{width:100%;height:4px;background:rgba(255,255,255,.2);border-radius:99px;position:relative;cursor:pointer;margin-bottom:8px}
+.pgt:hover .pgf{background:#fff}
+.pgf{height:100%;background:rgba(255,255,255,.8);border-radius:99px;width:0%;transition:width .2s linear;position:relative}
+.pgf::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%) scale(0);width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .2s}
+.pgt:hover .pgf::after{transform:translateY(-50%) scale(1)}
+.t2{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.5)}
+
+/* Controls */
+.cr{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px}
+.cb{width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .15s,transform .15s,background .15s}
+.cb:hover{color:#fff;background:rgba(255,255,255,.1)}
 .cb:active{transform:scale(.9)}
 .cb svg{width:20px;height:20px;fill:currentColor}
-.cpb{width:56px;height:56px;border-radius:50%;border:none;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s,background .15s;box-shadow:0 4px 20px rgba(255,255,255,.1)}
-.cpb:hover{background:#ddd}
+.cpb{width:58px;height:58px;border-radius:50%;border:none;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s,background .15s;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.cpb:hover{background:#ddd;transform:scale(1.05)}
 .cpb:active{transform:scale(.93)}
-.cpb svg{width:22px;height:22px;fill:#000}
-.vr{display:flex;align-items:center;gap:10px}
-.vr svg{width:15px;height:15px;fill:var(--muted);flex-shrink:0}
-.vs{flex:1;-webkit-appearance:none;appearance:none;height:3px;border-radius:99px;outline:none;cursor:pointer}
-.vs::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;cursor:pointer}
-.vp{font-size:11px;color:var(--muted);width:28px;text-align:right}
-.queue{margin-top:18px;border-top:1px solid var(--border);padding-top:12px}
-.queue-t{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;font-weight:700}
-.qi{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:2px}
-.qi:hover{background:var(--hover)}
-.qi.a{background:var(--card)}
-.qi-th{width:34px;height:34px;border-radius:6px;object-fit:cover;flex-shrink:0;background:var(--border)}
-.qi-m{flex:1;min-width:0}
-.qi-n{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8e8e8}
-.qi.a .qi-n{color:var(--green)}
-.qi-ar{font-size:11px;color:var(--sub)}
-.qi-d{font-size:11px;color:var(--muted)}
+.cpb svg{width:24px;height:24px;fill:#000}
 
-/* ── API KEY BANNER ── */
-.api-banner{background:#1a1200;border:1px solid #3d2e00;border-radius:12px;padding:14px 16px;margin:16px 20px;display:flex;align-items:flex-start;gap:12px}
-.api-banner svg{width:18px;height:18px;fill:#f59e0b;flex-shrink:0;margin-top:1px}
-.api-banner-text{flex:1;font-size:12px;color:#d4a017;line-height:1.6}
-.api-banner-text strong{color:#f59e0b;display:block;margin-bottom:3px}
-.api-key-row{display:flex;gap:8px;margin-top:8px}
-.api-key-input{flex:1;background:#111;border:1px solid #3d2e00;border-radius:8px;padding:7px 10px;font-size:12px;color:#e8e8e8;outline:none;font-family:monospace}
-.api-key-input:focus{border-color:#f59e0b}
-.api-key-save{padding:7px 14px;border-radius:8px;background:#f59e0b;border:none;color:#000;font-size:12px;font-weight:600;cursor:pointer}
-.api-key-save:hover{background:#fbbf24}
+/* Volume */
+.vr{display:flex;align-items:center;gap:10px}
+.vr svg{width:15px;height:15px;fill:rgba(255,255,255,.4);flex-shrink:0}
+.vs{flex:1;-webkit-appearance:none;appearance:none;height:3px;border-radius:99px;outline:none;cursor:pointer;background:rgba(255,255,255,.2)}
+.vs::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;cursor:pointer}
+.vp{font-size:11px;color:rgba(255,255,255,.4);width:28px;text-align:right}
+
+/* Queue */
+.queue{margin-top:16px;border-top:1px solid rgba(255,255,255,.1);padding-top:12px}
+.queue-t{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;font-weight:700}
+.qi{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:2px}
+.qi:hover{background:rgba(255,255,255,.08)}
+.qi.a{background:rgba(255,255,255,.1)}
+.qi-th{width:34px;height:34px;border-radius:6px;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,.1)}
+.qi-m{flex:1;min-width:0}
+.qi-n{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgba(255,255,255,.8)}
+.qi.a .qi-n{color:var(--green)}
+.qi-ar{font-size:11px;color:rgba(255,255,255,.4)}
+.qi-d{font-size:11px;color:rgba(255,255,255,.3)}
+
+/* Wave */
+.fp-wave{display:flex;align-items:flex-end;justify-content:center;gap:2px;height:24px;margin-bottom:12px;opacity:0;transition:opacity .4s}
+.fp-wave.on{opacity:1}
+.wb{width:3px;border-radius:4px;background:rgba(255,255,255,.7);height:3px}
+.wb.an{animation:eq var(--d,.5s) ease-in-out infinite alternate;animation-delay:var(--dl,0s)}
 
 /* ── MOBILE BOTTOM BAR ── */
 .mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--sb);border-top:1px solid var(--border);z-index:150;align-items:center;justify-content:space-around}
@@ -185,7 +225,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
 .mini-info{flex:1;min-width:0}
 .mini-name{font-size:13px;font-weight:500;color:#e8e8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mini-artist{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mini-play{width:36px;height:36px;border-radius:50%;background:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mini-play{width:36px;height:36px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .mini-play svg{width:16px;height:16px;fill:#000}
 .mini-prog{position:absolute;top:0;left:0;right:0;height:2px;background:var(--border)}
 .mini-prog-fill{height:100%;background:var(--green);width:0%;transition:width .2s linear}
@@ -195,25 +235,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
   .sidebar{display:none}
   .main{width:100%}
   .content{padding-bottom:140px}
-  .mh{padding:0 12px;height:52px;min-height:52px;flex-wrap:wrap;gap:8px}
+  .mh{padding:0 12px;height:60px;min-height:60px}
   .search-wrap{max-width:100%}
   .genre-wrap{display:none}
   .lh{display:none}
-  .lv{padding:10px 10px}
+  .lv{padding:10px 12px}
+  .top-banner{padding:14px 12px 4px}
   .li{grid-template-columns:1fr 36px 50px;gap:8px;padding:8px 8px}
   .li-num,.li-al{display:none}
   .li-cv{width:44px;height:44px}
   .mob-bar{display:flex}
   .mini-player{display:flex}
-  .fp-inner{width:100vw;max-height:100dvh;height:100dvh;border-radius:0;flex-direction:column;border:none}
-  .fp-left{width:100%;min-width:0;height:40vw;min-height:160px;max-height:240px;flex-shrink:0}
-  .fp-cover-fade{background:linear-gradient(to bottom,transparent 40%,#181818)}
-  .fp-right{flex:1;padding:18px 18px 20px;overflow-y:auto}
-  .fp-name{font-size:20px}
-  .fp-close{top:10px;right:10px}
-  .cr{gap:12px;margin-bottom:16px}
-  .cpb{width:50px;height:50px}
-  .api-banner{margin:10px 12px}
 }
 </style>
 </head>
@@ -242,29 +274,25 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
   <main class="main">
     <header class="mh">
       <div class="search-wrap">
-        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        <input type="text" id="searchInput" placeholder="Поиск музыки..." autocomplete="off">
+        <svg class="s-ico" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" id="searchInput" placeholder="Что хочешь включить?" autocomplete="off">
         <button class="search-clear" id="searchClear">✕</button>
       </div>
       <div class="genre-wrap" id="genreWrap"></div>
     </header>
     <div class="content" id="content">
       <div id="viewTracks">
-      <div class="lv">
-        <div class="lh">
-          <div>#</div><div>Название</div><div>Альбом</div><div></div><div style="text-align:right">⏱</div>
+        <!-- Top Tracks Section -->
+        <div class="top-banner" id="topBanner"></div>
+        <div class="lv">
+          <div class="lh">
+            <div>#</div><div>Название</div><div>Альбом</div><div></div><div style="text-align:right">⏱</div>
+          </div>
+          <div id="mainList"></div>
         </div>
-        <div id="mainList"></div>
-      </div>
-      <div class="load-more" id="loadMoreWrap" style="display:none">
-        <button class="load-more-btn" id="loadMoreBtn">Загрузить ещё</button>
-      </div>
       </div>
       <div id="viewAlbums" style="display:none;padding:16px 20px">
         <div id="albumsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px"></div>
-        <div class="load-more" id="loadMoreAlbumsWrap" style="display:none">
-          <button class="load-more-btn" id="loadMoreAlbumsBtn">Загрузить ещё</button>
-        </div>
       </div>
     </div>
   </main>
@@ -304,19 +332,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
 <div class="fp" id="fp" style="pointer-events:none">
   <div class="fp-bg" id="fpBg"></div>
   <div class="fp-inner">
-    <div class="fp-left">
-      <img class="fp-cover" id="fpCover" src="" alt="">
-      <div class="fp-cover-fade"></div>
-      <div class="fp-wave" id="fpWave"></div>
-    </div>
-    <div class="fp-right">
-      <button class="fp-close" id="fpClose">✕</button>
-      <div>
-        <div class="fp-info">
+    <div class="fp-cover-bg" id="fpCoverBg"></div>
+    <div class="fp-cover-overlay"></div>
+    <button class="fp-back" id="fpClose">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <div class="fp-content">
+      <div class="fp-left-side">
+        <img class="fp-album-art" id="fpCover" src="" alt="">
+        <div class="fp-wave" id="fpWave"></div>
+      </div>
+      <div class="fp-right-side">
+        <div class="fp-track-info">
           <div class="fp-name" id="fpName">—</div>
           <div class="fp-artist" id="fpArtist">—</div>
           <div class="fp-tags" id="fpTags"></div>
-          <button class="fp-dl" id="fpDl" style="cursor:pointer">
+          <button class="fp-dl" id="fpDl" style="cursor:pointer;margin-top:8px">
             <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
             Скачать MP3
           </button>
@@ -335,12 +366,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
         </div>
         <div class="vr">
           <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg>
-          <input type="range" class="vs" id="vs" min="0" max="100" value="80" style="background:linear-gradient(to right,#fff 80%,#282828 80%)">
+          <input type="range" class="vs" id="vs" min="0" max="100" value="80">
           <svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
           <span class="vp" id="vp">80</span>
         </div>
+        <div class="queue"><div class="queue-t">Далее в очереди</div><div id="qList"></div></div>
       </div>
-      <div class="queue"><div class="queue-t">Далее в очереди</div><div id="qList"></div></div>
     </div>
   </div>
 </div>
@@ -349,115 +380,72 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
 <audio id="au" preload="none" style="display:none" crossorigin="anonymous"></audio>
 
 <script>
-// ── CONFIG ──
 const GENRES = ['pop','rock','electronic','hiphop','jazz','classical','ambient','metal','folk','reggae','latin','lounge'];
 let CLIENT_ID = localStorage.getItem('jamendo_client_id') || 'f93f915a';
 const BASE = 'https://api.jamendo.com/v3.0';
 
 let TRACKS = [];
 let cur = -1, playing = false, currentPage = 1, currentQuery = '', currentGenre = '';
-// view: 'tracks' | 'fav' | 'albums'
 let currentView = 'tracks';
 let albumsPage = 1, albumsData = [];
 const favs = new Set(JSON.parse(localStorage.getItem('jamendo_favs') || '[]'));
 const au = document.getElementById('au');
 
+// ── PLAY STATS (localStorage) ──
+function getPlayStats(){
+  try{ return JSON.parse(localStorage.getItem('chatit_playstats')||'{}'); }catch(e){ return {}; }
+}
+function savePlayStats(stats){
+  localStorage.setItem('chatit_playstats', JSON.stringify(stats));
+}
+function incrementPlay(trackId){
+  const stats = getPlayStats();
+  stats[trackId] = (stats[trackId]||0) + 1;
+  savePlayStats(stats);
+}
+
 function fmt(s){if(!s||isNaN(s))return'—';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')}
 
 async function downloadTrack(url, name){
   try{
+    const dlName = '(Chatit-Music) ' + (name||'track').replace(/[\\/:*?"<>|]/g,'_') + '.mp3';
     const r = await fetch(url);
     const blob = await r.blob();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = (name||'track').replace(/[\\/:*?"<>|]/g,'_') + '.mp3';
+    a.download = dlName;
     document.body.appendChild(a);
     a.click();
     setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-  }catch(e){ window.open(url); }
+  }catch(e){ console.error('Download failed', e); }
 }
 
-// ── МОИ ТРЕКИ (Cloudinary) ──
+// ── TRACKS DATA ──
 const CDN = 'https://res.cloudinary.com/dkjrcyiiw/video/upload/';
-
-// Уникальные обложки для каждого трека (Wikipedia / Last.fm / MusicBrainz)
-const COVERS = {
-  album:       'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  hailie:      'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  cleanin:     'https://upload.wikimedia.org/wikipedia/en/thumb/9/9b/Eminem_-_Cleanin%27_Out_My_Closet.jpg/220px-Eminem_-_Cleanin%27_Out_My_Closet.jpg',
-  business:    'https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/Eminem-business.jpg/220px-Eminem-business.jpg',
-  saywhat:     'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  drips:       'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  curtains:    'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  dadscrazy:   'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  collapse:    'https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/Eminem_-_Til_I_Collapse.jpg/220px-Eminem_-_Til_I_Collapse.jpg',
-  superman:    'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  musicstops:  'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  whiteamerica:'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  singmoment:  'https://upload.wikimedia.org/wikipedia/en/thumb/b/b8/Eminem-singforthemoment.jpg/220px-Eminem-singforthemoment.jpg',
-  squaredance: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/5e/Eminem-squaredance.jpg/220px-Eminem-squaredance.jpg',
-  withoutme:   'https://upload.wikimedia.org/wikipedia/en/thumb/2/26/Eminem-withoutme.jpg/220px-Eminem-withoutme.jpg',
-  saygoodbye:  'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  soldier:     'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  kiss:        'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  berman:      'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-  paul:        'https://upload.wikimedia.org/wikipedia/en/thumb/3/35/Eminem_-_The_Eminem_Show.jpg/300px-Eminem_-_The_Eminem_Show.jpg',
-};
-
-// Генерируем красивые уникальные обложки через canvas (SVG data URI) если Wikipedia не загрузится
-function genCover(title, color1, color2) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">
-    <defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:${color1}"/>
-      <stop offset="100%" style="stop-color:${color2}"/>
-    </linearGradient></defs>
-    <rect width="300" height="300" fill="url(#g)"/>
-    <text x="150" y="120" font-family="system-ui,sans-serif" font-size="52" font-weight="900" fill="white" text-anchor="middle" opacity="0.95">EM</text>
-    <text x="150" y="200" font-family="system-ui,sans-serif" font-size="16" font-weight="600" fill="white" text-anchor="middle" opacity="0.85">${title.substring(0,20)}</text>
-    <text x="150" y="225" font-family="system-ui,sans-serif" font-size="12" fill="white" text-anchor="middle" opacity="0.6">The Eminem Show</text>
-  </svg>`;
-  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
-}
-
-// Палитры цветов для каждого трека
-const TRACK_COLORS = [
-  ['#8B0000','#1a0000'], ['#1a1a2e','#16213e'], ['#0d1b2a','#1b263b'],
-  ['#2d1b69','#11002f'], ['#1a472a','#0d2b17'], ['#4a0e0e','#1a0505'],
-  ['#0e2a4a','#051524'], ['#3d0c02','#1a0500'], ['#1c1c3a','#0a0a1a'],
-  ['#2a1a0e','#120800'], ['#0a2a0a','#051405'], ['#1a0a2a','#0d0516'],
-  ['#2a0a0a','#140505'], ['#0a1a2a','#050d14'], ['#1a2a0a','#0d1405'],
-  ['#2a1a1a','#140d0d'], ['#0a0a2a','#050514'], ['#1a1a0a','#0d0d05'],
-  ['#2a0a1a','#14050d'], ['#0a2a1a','#05140d'],
-];
-
-function makeTrackCover(idx, title) {
-  const [c1, c2] = TRACK_COLORS[idx % TRACK_COLORS.length];
-  return genCover(title, c1, c2);
-}
-
 const EMINEM_SHOW_COVER = 'https://upload.wikimedia.org/wikipedia/en/3/35/Eminem_-_The_Eminem_Show.jpg';
 
+// explicit: true = матерный трек — показываем значок М
 const MY_TRACKS = [
-  { id:'my1',  name:'Hailie\'s Song',               artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           download:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           duration:320, tags:['hip-hop'] },
-  { id:'my2',  name:'Cleanin\' Out My Closet',      artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   download:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   duration:299, tags:['hip-hop'] },
-  { id:'my3',  name:'Business',                     artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Business_emn5kn.mp3',                                download:CDN+'Eminem_-_Business_emn5kn.mp3',                                duration:252, tags:['hip-hop'] },
-  { id:'my4',  name:'Say What You Say',             artist:'Eminem feat. Dr. Dre', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', download:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', duration:309, tags:['hip-hop'] },
-  { id:'my5',  name:'Drips',                        artist:'Eminem feat. Obie Trice', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    download:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    duration:285, tags:['hip-hop'] },
-  { id:'my6',  name:'Curtains Close (Skit)',        artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           download:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           duration:62,  tags:['hip-hop'] },
-  { id:'my7',  name:'My Dad\'s Gone Crazy',         artist:'Eminem feat. Hailie Jade', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', download:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', duration:267, tags:['hip-hop'] },
-  { id:'my8',  name:'\'Till I Collapse',            artist:'Eminem feat. Nate Dogg', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   download:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   duration:297, tags:['hip-hop'] },
-  { id:'my9',  name:'Superman',                     artist:'Eminem feat. Dina Rae', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       download:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       duration:350, tags:['hip-hop'] },
-  { id:'my10', name:'When The Music Stops',         artist:'Eminem feat. D12', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    download:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    duration:269, tags:['hip-hop'] },
-  { id:'my11', name:'White America',                artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_White_America_rfazrr.mp3',                            download:CDN+'Eminem_-_White_America_rfazrr.mp3',                            duration:300, tags:['hip-hop'] },
-  { id:'my12', name:'Sing For The Moment',          artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      download:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      duration:340, tags:['hip-hop'] },
-  { id:'my13', name:'Square Dance',                 artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             download:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             duration:298, tags:['hip-hop'] },
-  { id:'my14', name:'Without Me',                   artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               download:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               duration:290, tags:['hip-hop'] },
-  { id:'my15', name:'Say Goodbye Hollywood',        artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    download:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    duration:270, tags:['hip-hop'] },
-  { id:'my16', name:'Soldier',                      artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  download:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  duration:285, tags:['hip-hop'] },
-  { id:'my17', name:'The Kiss (Skit)',               artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          download:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          duration:90,  tags:['hip-hop'] },
-  { id:'my18', name:'Steve Berman (Skit)',           artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      download:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      duration:80,  tags:['hip-hop'] },
-  { id:'my19', name:'Paul Rosenberg (Skit)',         artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    download:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    duration:70,  tags:['hip-hop'] },
-  { id:'my20', name:'Business (Instrumental)',       artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 download:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 duration:252, tags:['hip-hop'] },
+  { id:'my1',  name:'Hailie\'s Song',          artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           download:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           duration:320, tags:['hip-hop'], explicit:false },
+  { id:'my2',  name:'Cleanin\' Out My Closet', artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   download:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   duration:299, tags:['hip-hop'], explicit:true },
+  { id:'my3',  name:'Business',                artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Business_emn5kn.mp3',                                download:CDN+'Eminem_-_Business_emn5kn.mp3',                                duration:252, tags:['hip-hop'], explicit:true },
+  { id:'my4',  name:'Say What You Say',        artist:'Eminem feat. Dr. Dre', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', download:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', duration:309, tags:['hip-hop'], explicit:true },
+  { id:'my5',  name:'Drips',                   artist:'Eminem feat. Obie Trice', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    download:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    duration:285, tags:['hip-hop'], explicit:true },
+  { id:'my6',  name:'Curtains Close (Skit)',   artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           download:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           duration:62,  tags:['hip-hop'], explicit:false },
+  { id:'my7',  name:'My Dad\'s Gone Crazy',    artist:'Eminem feat. Hailie Jade', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', download:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', duration:267, tags:['hip-hop'], explicit:true },
+  { id:'my8',  name:'\'Till I Collapse',       artist:'Eminem feat. Nate Dogg', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   download:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   duration:297, tags:['hip-hop'], explicit:true },
+  { id:'my9',  name:'Superman',                artist:'Eminem feat. Dina Rae', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       download:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       duration:350, tags:['hip-hop'], explicit:true },
+  { id:'my10', name:'When The Music Stops',    artist:'Eminem feat. D12', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    download:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    duration:269, tags:['hip-hop'], explicit:true },
+  { id:'my11', name:'White America',           artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_White_America_rfazrr.mp3',                            download:CDN+'Eminem_-_White_America_rfazrr.mp3',                            duration:300, tags:['hip-hop'], explicit:true },
+  { id:'my12', name:'Sing For The Moment',     artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      download:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      duration:340, tags:['hip-hop'], explicit:false },
+  { id:'my13', name:'Square Dance',            artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             download:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             duration:298, tags:['hip-hop'], explicit:true },
+  { id:'my14', name:'Without Me',              artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               download:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               duration:290, tags:['hip-hop'], explicit:true },
+  { id:'my15', name:'Say Goodbye Hollywood',   artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    download:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    duration:270, tags:['hip-hop'], explicit:false },
+  { id:'my16', name:'Soldier',                 artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  download:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  duration:285, tags:['hip-hop'], explicit:true },
+  { id:'my17', name:'The Kiss (Skit)',          artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          download:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          duration:90,  tags:['hip-hop'], explicit:false },
+  { id:'my18', name:'Steve Berman (Skit)',      artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      download:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      duration:80,  tags:['hip-hop'], explicit:false },
+  { id:'my19', name:'Paul Rosenberg (Skit)',    artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    download:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    duration:70,  tags:['hip-hop'], explicit:false },
+  { id:'my20', name:'Business (Instrumental)', artist:'Eminem', album:'The Eminem Show', cover:EMINEM_SHOW_COVER, src:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 download:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 duration:252, tags:['hip-hop'], explicit:false },
 ];
 
 // ── API ──
@@ -465,13 +453,8 @@ async function fetchTracks(query='', genre='', page=1){
   if(!CLIENT_ID) return [];
   const limit = 20, offset = (page-1)*limit;
   const params = new URLSearchParams({
-    client_id: CLIENT_ID,
-    format: 'json',
-    limit,
-    offset,
-    include: 'musicinfo',
-    imagesize: 200,
-    audioformat: 'mp31',
+    client_id: CLIENT_ID, format: 'json', limit, offset,
+    include: 'musicinfo', imagesize: 200, audioformat: 'mp31',
     order: query||genre ? 'relevance' : 'popularity_total',
   });
   if(query) params.set('search', query);
@@ -479,20 +462,19 @@ async function fetchTracks(query='', genre='', page=1){
   try{
     const r = await fetch(`${BASE}/tracks/?${params}`);
     const d = await r.json();
-    if(d.headers?.status !== 'success'){ console.warn('Jamendo error:', d.headers); return []; }
+    if(d.headers?.status !== 'success') return [];
     return (d.results||[]).map(t=>({
       id: t.id, name: t.name, artist: t.artist_name,
       album: t.album_name || '—', cover: t.image || '',
       src: t.audio, download: t.audiodownload || t.audio,
-      duration: t.duration,
+      duration: t.duration, explicit: false,
       tags: (t.musicinfo?.tags?.genres||[]).concat(t.musicinfo?.tags?.instruments||[]).slice(0,4),
     }));
-  }catch(e){ console.error('Fetch error:', e); return []; }
+  }catch(e){ return []; }
 }
 
-// ── МОИ АЛЬБОМЫ ──
 const MY_ALBUMS = [
-  { id:'myalb1', name:'The Eminem Show', artist:'Eminem', cover:'https://upload.wikimedia.org/wikipedia/en/3/35/Eminem_-_The_Eminem_Show.jpg' },
+  { id:'myalb1', name:'The Eminem Show', artist:'Eminem', cover: EMINEM_SHOW_COVER },
 ];
 
 async function fetchAlbums(query='', page=1){
@@ -507,10 +489,63 @@ async function fetchAlbums(query='', page=1){
     const r = await fetch(`${BASE}/albums/?${params}`);
     const d = await r.json();
     if(d.headers?.status !== 'success') return [];
-    return (d.results||[]).map(a=>({
-      id: a.id, name: a.name, artist: a.artist_name, cover: a.image||'',
-    }));
+    return (d.results||[]).map(a=>({ id: a.id, name: a.name, artist: a.artist_name, cover: a.image||'' }));
   }catch(e){ return []; }
+}
+
+// ── TOP TRACKS BANNER ──
+function renderTopBanner(){
+  const banner = document.getElementById('topBanner');
+  if(currentQuery || currentGenre || currentView !== 'tracks'){
+    banner.innerHTML = '';
+    return;
+  }
+  const stats = getPlayStats();
+  // Combine MY_TRACKS with play counts
+  const ranked = MY_TRACKS
+    .map(t => ({ ...t, plays: stats[t.id]||0 }))
+    .filter(t => t.plays > 0)
+    .sort((a,b) => b.plays - a.plays)
+    .slice(0, 8);
+
+  if(!ranked.length){
+    banner.innerHTML = `
+      <div class="top-banner-title">
+        <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        Чаще всего слушают
+      </div>
+      <div style="font-size:12px;color:var(--muted);padding-bottom:12px">Включи треки — здесь появится статистика 🎧</div>`;
+    return;
+  }
+
+  const cards = ranked.map(t => {
+    const idx = TRACKS.findIndex(tr=>tr.id===t.id);
+    return `<div class="top-card" data-idx="${idx}" data-id="${t.id}">
+      <img class="top-card-img" src="${t.cover}" alt="${t.name}" loading="lazy">
+      <div class="top-card-info">
+        <div class="top-card-name">${t.name}</div>
+        <div class="top-card-artist">${t.artist}</div>
+        <div class="top-card-plays">
+          <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          ${t.plays} прослушиваний
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  banner.innerHTML = `
+    <div class="top-banner-title">
+      <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+      Чаще всего слушают
+    </div>
+    <div class="top-tracks-row">${cards}</div>`;
+
+  banner.querySelectorAll('.top-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const idx = parseInt(card.dataset.idx);
+      if(idx >= 0) openPlayer(idx);
+    });
+  });
 }
 
 // ── RENDER ──
@@ -531,6 +566,7 @@ function renderList(){
   }
   list.forEach((t,row)=>{
     const globalIdx = currentView === 'fav' ? TRACKS.indexOf(t) : row;
+    const explicitBadge = t.explicit ? `<span class="explicit-badge">М</span>` : '';
     const li = document.createElement('div');
     li.className = 'li'; li.dataset.idx = globalIdx;
     li.innerHTML = `
@@ -542,7 +578,7 @@ function renderList(){
         <img class="li-cv" src="${t.cover}" alt="${t.name}" loading="lazy">
         <div class="li-mt">
           <div class="li-n">${t.name}</div>
-          <div class="li-ar">${t.artist}</div>
+          <div class="li-ar">${explicitBadge}${t.artist}</div>
         </div>
       </div>
       <div class="li-al">${t.album}</div>
@@ -577,7 +613,6 @@ function renderSidebar(){
   const sl = document.getElementById('sbList');
   sl.innerHTML = '';
   if(cur < 0 || !TRACKS.length){ sl.innerHTML='<div style="padding:8px 10px;font-size:12px;color:var(--muted)">Ничего не играет</div>'; return; }
-  // показываем треки вокруг текущего
   const start = Math.max(0, cur - 2);
   const end = Math.min(TRACKS.length, cur + 8);
   TRACKS.slice(start, end).forEach(t=>{
@@ -594,7 +629,6 @@ function renderSidebar(){
     sr.addEventListener('click', ()=>openPlayer(i));
     sl.appendChild(sr);
   });
-  // анимация для текущего
   document.querySelectorAll('.tr').forEach(el=>{
     const i = parseInt(el.dataset.idx);
     el.querySelectorAll('.mb').forEach(b=>b.classList.toggle('an', i===cur&&playing));
@@ -632,7 +666,6 @@ function renderAlbums(append=false){
     card.className = 'alb-card';
     card.innerHTML = `<img class="alb-cover" src="${a.cover}" alt="${a.name}" loading="lazy"><div class="alb-info"><div class="alb-name">${a.name}</div><div class="alb-artist">${a.artist}</div></div>`;
     card.addEventListener('click', ()=>{
-      // при клике на альбом — ищем треки этого артиста
       currentView='tracks'; currentQuery=a.artist; currentPage=1; TRACKS=[];
       document.getElementById('searchInput').value=a.artist;
       document.getElementById('searchClear').style.display='block';
@@ -645,19 +678,19 @@ function renderAlbums(append=false){
 
 async function doAlbums(append=false){
   const grid = document.getElementById('albumsGrid');
-  const lmw = document.getElementById('loadMoreAlbumsWrap');
   if(!append){
     grid.innerHTML=`<div class="state-msg" style="grid-column:1/-1"><div class="spinner"></div>Загружаем альбомы...</div>`;
-    lmw.style.display='none';
   }
   const results = await fetchAlbums(currentQuery, albumsPage);
   if(append) albumsData=[...albumsData,...results];
   else albumsData=[...MY_ALBUMS, ...results];
   renderAlbums(append);
-  lmw.style.display = results.length===24 ? 'flex' : 'none';
+  // No "load more" button — auto infinite scroll
+  if(results.length===24){
+    albumsPage++;
+    doAlbums(true);
+  }
 }
-
-document.getElementById('loadMoreAlbumsBtn').addEventListener('click',()=>{ albumsPage++; doAlbums(true); });
 
 function updUI(){
   document.querySelectorAll('.li').forEach(el=>{
@@ -669,8 +702,8 @@ function updUI(){
       const isFav = favs.has(i);
       fb.classList.toggle('on', isFav);
       const sv = fb.querySelector('svg');
-      sv.style.fill = isFav ? '#fff' : 'none';
-      sv.style.stroke = isFav ? '#fff' : '#777';
+      sv.style.fill = isFav ? '#1db954' : 'none';
+      sv.style.stroke = isFav ? '#1db954' : '#777';
     }
   });
   document.querySelectorAll('.tr').forEach(el=>{
@@ -686,7 +719,7 @@ function updUI(){
 
 // ── PLAYER ──
 const fpWave = document.getElementById('fpWave');
-for(let i=0;i<32;i++){const b=document.createElement('div');b.className='wb';const mh=8+Math.random()*42,d=(0.3+Math.random()*0.5).toFixed(2),dl=(Math.random()*0.38).toFixed(2);b.style.cssText=`--d:${d}s;--dl:${dl}s;--mh:${mh}px`;fpWave.appendChild(b)}
+for(let i=0;i<20;i++){const b=document.createElement('div');b.className='wb';const mh=8+Math.random()*20,d=(0.3+Math.random()*0.5).toFixed(2),dl=(Math.random()*0.38).toFixed(2);b.style.cssText=`--d:${d}s;--dl:${dl}s;--mh:${mh}px`;fpWave.appendChild(b)}
 
 function setPlaying(s){
   playing = s;
@@ -703,9 +736,14 @@ function load(i, play=false){
   const t = TRACKS[i];
   au.src = t.src;
   au.volume = document.getElementById('vs').value/100;
+
+  // Cover + dynamic background
   document.getElementById('fpCover').src = t.cover;
+  document.getElementById('fpCoverBg').style.backgroundImage = `url('${t.cover}')`;
+  document.getElementById('fpBg').style.background = 'rgba(0,0,0,.7)';
+
   document.getElementById('fpName').textContent = t.name;
-  document.getElementById('fpArtist').textContent = t.artist;
+  document.getElementById('fpArtist').textContent = (t.explicit ? '🅼 ' : '') + t.artist;
   document.getElementById('pgf').style.width = '0%';
   document.getElementById('tc').textContent = '0:00';
   document.getElementById('tt').textContent = fmt(t.duration);
@@ -716,8 +754,13 @@ function load(i, play=false){
     dlEl.style.display='inline-flex';
     dlEl.onclick = () => downloadTrack(t.download, t.name);
   } else dlEl.style.display='none';
-  if(play){ au.play(); setPlaying(true); }
-  else setPlaying(false);
+  if(play){
+    au.play();
+    setPlaying(true);
+    // Track stats: count every play
+    if(t.id) incrementPlay(t.id);
+    renderTopBanner();
+  } else setPlaying(false);
   renderSidebar();
   renderQueue();
   updUI();
@@ -725,7 +768,11 @@ function load(i, play=false){
 
 function openPlayer(i){
   if(i !== cur) load(i, true);
-  else if(!playing){ au.play(); setPlaying(true); }
+  else if(!playing){
+    au.play();
+    setPlaying(true);
+    if(TRACKS[cur]?.id){ incrementPlay(TRACKS[cur].id); renderTopBanner(); }
+  }
   const fp = document.getElementById('fp');
   fp.style.pointerEvents = 'all';
   fp.classList.remove('closing');
@@ -739,10 +786,12 @@ function closePlayer(){
   setTimeout(()=>{ fp.classList.remove('closing'); fp.style.pointerEvents='none'; }, 480);
 }
 
-// Controls
 document.getElementById('btnPlay').addEventListener('click',()=>{
   if(cur<0&&TRACKS.length){load(0,true);return}
-  if(playing){au.pause();setPlaying(false);}else{au.play();setPlaying(true);}
+  if(playing){au.pause();setPlaying(false);}else{
+    au.play();setPlaying(true);
+    if(TRACKS[cur]?.id){ incrementPlay(TRACKS[cur].id); renderTopBanner(); }
+  }
 });
 document.getElementById('btnPrev').addEventListener('click',()=>{
   if(au.currentTime>3){au.currentTime=0;return}
@@ -750,7 +799,6 @@ document.getElementById('btnPrev').addEventListener('click',()=>{
 });
 document.getElementById('btnNext').addEventListener('click',()=>load((cur+1)%TRACKS.length, playing));
 au.addEventListener('ended',()=>load((cur+1)%TRACKS.length, true));
-// Если трек не загрузился — показать уведомление и пропустить
 au.addEventListener('error',()=>{
   if(cur<0) return;
   const errBanner = document.getElementById('errBanner');
@@ -771,10 +819,9 @@ document.getElementById('pgt').addEventListener('click',e=>{
 document.getElementById('vs').addEventListener('input',e=>{
   au.volume=e.target.value/100;
   document.getElementById('vp').textContent=e.target.value;
-  e.target.style.background=`linear-gradient(to right,#fff ${e.target.value}%,#282828 ${e.target.value}%)`;
 });
 document.getElementById('fpClose').addEventListener('click',closePlayer);
-document.getElementById('fpBg').addEventListener('click',closePlayer);
+document.getElementById('fpBg').addEventListener('click', e=>{ if(e.target===document.getElementById('fpBg')) closePlayer(); });
 
 // ── MINI PLAYER ──
 function updMiniPlayer(){
@@ -792,7 +839,10 @@ document.getElementById('miniPlayer').addEventListener('click',e=>{
 });
 document.getElementById('miniPlayBtn').addEventListener('click',e=>{
   e.stopPropagation();
-  if(playing){au.pause();setPlaying(false);}else{au.play();setPlaying(true);}
+  if(playing){au.pause();setPlaying(false);}else{
+    au.play();setPlaying(true);
+    if(TRACKS[cur]?.id){ incrementPlay(TRACKS[cur].id); renderTopBanner(); }
+  }
 });
 
 // ── SEARCH & GENRES ──
@@ -838,19 +888,17 @@ document.getElementById('searchClear').addEventListener('click',()=>{
 
 async function doSearch(append=false){
   const ml=document.getElementById('mainList');
-  const lmw=document.getElementById('loadMoreWrap');
   const isHome = !currentQuery && !currentGenre && currentPage===1 && !append;
 
-  // Сразу показываем свои треки на главной — не ждём API
   if(isHome){
     TRACKS = [...MY_TRACKS];
     renderList();
+    renderTopBanner();
     renderSidebar();
     renderQueue();
     ml.insertAdjacentHTML('beforeend','<div id="jamendoLoading" class="state-msg" style="height:60px"><div class="spinner"></div></div>');
   } else if(!append){
     ml.innerHTML=`<div class="state-msg"><div class="spinner"></div>Загружаем треки...</div>`;
-    lmw.style.display='none';
   }
 
   if(!CLIENT_ID) return;
@@ -864,7 +912,6 @@ async function doSearch(append=false){
   } else if(append){
     TRACKS=[...TRACKS,...results];
   } else {
-    // При поиске — сначала свои треки (если совпадают), потом Jamendo
     const q = currentQuery.toLowerCase();
     const myFiltered = q ? MY_TRACKS.filter(t=>
       t.name.toLowerCase().includes(q) ||
@@ -876,36 +923,50 @@ async function doSearch(append=false){
 
   if(!TRACKS.length){
     ml.innerHTML=`<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${currentQuery?'По запросу «'+currentQuery+'» ничего не найдено':'Нет треков'}</div>`;
-    lmw.style.display='none';
     return;
   }
   renderList();
+  renderTopBanner();
   renderSidebar();
   renderQueue();
-  lmw.style.display = results.length===20 ? 'flex' : 'none';
+
+  // Infinite scroll instead of button
+  if(results.length===20){
+    currentPage++;
+    // auto-load more when near end
+    setupInfiniteScroll();
+  }
 }
 
-document.getElementById('loadMoreBtn').addEventListener('click',()=>{
-  currentPage++;
-  doSearch(true);
-});
+// Infinite scroll
+let scrollListening = false;
+function setupInfiniteScroll(){
+  if(scrollListening) return;
+  scrollListening = true;
+  const content = document.getElementById('content');
+  const handler = () => {
+    if(content.scrollTop + content.clientHeight >= content.scrollHeight - 200){
+      scrollListening = false;
+      content.removeEventListener('scroll', handler);
+      doSearch(true);
+    }
+  };
+  content.addEventListener('scroll', handler);
+}
 
 // ── VIEW SWITCHING ──
 function showView(v){
   currentView = v;
   document.getElementById('viewTracks').style.display = (v==='albums') ? 'none' : 'block';
   document.getElementById('viewAlbums').style.display = (v==='albums') ? 'block' : 'none';
-  // sidebar nav
   ['navAll','navFav','navAlbums'].forEach(id=>document.getElementById(id).classList.remove('a'));
   if(v==='tracks') document.getElementById('navAll').classList.add('a');
   else if(v==='fav') document.getElementById('navFav').classList.add('a');
   else if(v==='albums') document.getElementById('navAlbums').classList.add('a');
-  // mobile nav
   ['mobBtnAll','mobBtnFav','mobBtnAlbums'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('a'); });
   if(v==='tracks'){ const el=document.getElementById('mobBtnAll'); if(el) el.classList.add('a'); }
   else if(v==='fav'){ const el=document.getElementById('mobBtnFav'); if(el) el.classList.add('a'); }
   else if(v==='albums'){ const el=document.getElementById('mobBtnAlbums'); if(el) el.classList.add('a'); }
-  // search bar visibility
   document.getElementById('genreWrap').style.display = (v==='albums') ? 'none' : '';
   if(v==='fav') renderList();
 }
@@ -931,14 +992,9 @@ if(mba) mba.addEventListener('click',()=>switchTab('tracks'));
 if(mbf) mbf.addEventListener('click',()=>switchTab('fav'));
 if(mbAlb) mbAlb.addEventListener('click',()=>switchTab('albums'));
 
-// ── API KEY ──
-function checkApiKey(){
-  renderGenres();
-  doSearch(); // автозагрузка при открытии
-}
-
 // ── INIT ──
-checkApiKey();
+renderGenres();
+doSearch();
 </script>
 </body>
 </html>
