@@ -96,6 +96,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
 .load-more{display:flex;justify-content:center;padding:16px}
 .load-more-btn{padding:8px 24px;border-radius:20px;background:var(--card);border:1px solid var(--border);color:#e8e8e8;font-size:13px;cursor:pointer;transition:background .15s}
 .load-more-btn:hover{background:var(--hover)}
+/* Album cards */
+.alb-card{background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,background .15s;border:1px solid var(--border)}
+.alb-card:hover{transform:translateY(-3px);background:var(--hover)}
+.alb-cover{width:100%;aspect-ratio:1;object-fit:cover;background:var(--border);display:block}
+.alb-info{padding:10px 12px 12px}
+.alb-name{font-size:13px;font-weight:600;color:#e8e8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.alb-artist{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ── FULLSCREEN PLAYER ── */
 .fp{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -223,6 +230,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         Избранное
       </div>
+      <div class="ni" id="navAlbums">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg>
+        Альбомы
+      </div>
     </nav>
     <div class="sb-sec">Сейчас играет</div>
     <div class="sb-list" id="sbList"></div>
@@ -238,6 +249,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
       <div class="genre-wrap" id="genreWrap"></div>
     </header>
     <div class="content" id="content">
+      <div id="viewTracks">
       <div class="lv">
         <div class="lh">
           <div>#</div><div>Название</div><div>Альбом</div><div></div><div style="text-align:right">⏱</div>
@@ -246,6 +258,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
       </div>
       <div class="load-more" id="loadMoreWrap" style="display:none">
         <button class="load-more-btn" id="loadMoreBtn">Загрузить ещё</button>
+      </div>
+      </div>
+      <div id="viewAlbums" style="display:none;padding:16px 20px">
+        <div id="albumsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px"></div>
+        <div class="load-more" id="loadMoreAlbumsWrap" style="display:none">
+          <button class="load-more-btn" id="loadMoreAlbumsBtn">Загрузить ещё</button>
+        </div>
       </div>
     </div>
   </main>
@@ -274,6 +293,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-sy
   <button class="mob-bar-btn" id="mobBtnFav">
     <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
     Избранное
+  </button>
+  <button class="mob-bar-btn" id="mobBtnAlbums">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg>
+    Альбомы
   </button>
 </div>
 
@@ -331,11 +354,40 @@ let CLIENT_ID = localStorage.getItem('jamendo_client_id') || 'f93f915a';
 const BASE = 'https://api.jamendo.com/v3.0';
 
 let TRACKS = [];
-let cur = -1, playing = false, showFav = false, currentPage = 1, currentQuery = '', currentGenre = '';
+let cur = -1, playing = false, currentPage = 1, currentQuery = '', currentGenre = '';
+// view: 'tracks' | 'fav' | 'albums'
+let currentView = 'tracks';
+let albumsPage = 1, albumsData = [];
 const favs = new Set(JSON.parse(localStorage.getItem('jamendo_favs') || '[]'));
 const au = document.getElementById('au');
 
 function fmt(s){if(!s||isNaN(s))return'—';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')}
+
+// ── МОИ ТРЕКИ (Cloudinary) ──
+const CDN = 'https://res.cloudinary.com/dkjrcyiiw/video/upload/';
+const COVER = 'https://upload.wikimedia.org/wikipedia/en/3/35/Eminem_-_The_Eminem_Show.jpg';
+const MY_TRACKS = [
+  { id:'my1',  name:'Hailie\'s Song',               artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           download:CDN+'Eminem_-_Hailie_s_Song_gtnps7.mp3',                           duration:320, tags:['hip-hop'] },
+  { id:'my2',  name:'Cleanin\' Out My Closet',      artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   download:CDN+'Eminem_-_Cleanin_Out_My_Closet_eqc0xq.mp3',                   duration:299, tags:['hip-hop'] },
+  { id:'my3',  name:'Business',                     artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Business_emn5kn.mp3',                                download:CDN+'Eminem_-_Business_emn5kn.mp3',                                duration:252, tags:['hip-hop'] },
+  { id:'my4',  name:'Say What You Say',             artist:'Eminem feat. Dr. Dre', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', download:CDN+'Eminem_feat._Dr._Dre_-_Say_What_You_Say_rjxc9x.mp3', duration:309, tags:['hip-hop'] },
+  { id:'my5',  name:'Drips',                        artist:'Eminem feat. Obie Trice', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    download:CDN+'Eminem_feat._Obie_Trice_-_Drips_vv59cn.mp3',    duration:285, tags:['hip-hop'] },
+  { id:'my6',  name:'Curtains Close (Skit)',        artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           download:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',                           duration:62,  tags:['hip-hop'] },
+  { id:'my7',  name:'My Dad\'s Gone Crazy',         artist:'Eminem feat. Hailie Jade', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', download:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3', duration:267, tags:['hip-hop'] },
+  { id:'my8',  name:'\'Till I Collapse',            artist:'Eminem feat. Nate Dogg', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   download:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',   duration:297, tags:['hip-hop'] },
+  { id:'my9',  name:'Superman',                     artist:'Eminem feat. Dina Rae', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       download:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',       duration:350, tags:['hip-hop'] },
+  { id:'my10', name:'When The Music Stops',         artist:'Eminem feat. D12', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    download:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',    duration:269, tags:['hip-hop'] },
+  { id:'my11', name:'White America',                artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_White_America_rfazrr.mp3',                            download:CDN+'Eminem_-_White_America_rfazrr.mp3',                            duration:300, tags:['hip-hop'] },
+  { id:'my12', name:'Sing For The Moment',          artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      download:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',                      duration:340, tags:['hip-hop'] },
+  { id:'my13', name:'Square Dance',                 artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             download:CDN+'Eminem_-_Square_Dance_wkqpjj.mp3',                             duration:298, tags:['hip-hop'] },
+  { id:'my14', name:'Without Me',                   artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               download:CDN+'Eminem_-_Without_Me_bans4m.mp3',                               duration:290, tags:['hip-hop'] },
+  { id:'my15', name:'Say Goodbye Hollywood',        artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    download:CDN+'Eminem_-_Say_Goodbye_Hollywood_thhuis.mp3',                    duration:270, tags:['hip-hop'] },
+  { id:'my16', name:'Soldier',                      artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  download:CDN+'Eminem_-_Soldier_gjybwz.mp3',                                  duration:285, tags:['hip-hop'] },
+  { id:'my17', name:'The Kiss (Skit)',               artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          download:CDN+'Eminem_-_The_Kiss_-_Skit_w5enyu.mp3',                          duration:90,  tags:['hip-hop'] },
+  { id:'my18', name:'Steve Berman (Skit)',           artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      download:CDN+'Eminem_-_Steve_Berman_-_Skit_epsgit.mp3',                      duration:80,  tags:['hip-hop'] },
+  { id:'my19', name:'Paul Rosenberg (Skit)',         artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    download:CDN+'Eminem_-_Paul_Rosenberg_-_Skit_s1vtiw.mp3',                    duration:70,  tags:['hip-hop'] },
+  { id:'my20', name:'Business (Instrumental)',       artist:'Eminem', album:'The Eminem Show', cover:COVER, src:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 download:CDN+'Eminem_-_Business_dwoo8n.mp3',                                 duration:252, tags:['hip-hop'] },
+];
 
 // ── API ──
 async function fetchTracks(query='', genre='', page=1){
@@ -356,25 +408,33 @@ async function fetchTracks(query='', genre='', page=1){
   try{
     const r = await fetch(`${BASE}/tracks/?${params}`);
     const d = await r.json();
-    if(d.headers?.status !== 'success'){
-      console.warn('Jamendo error:', d.headers);
-      return [];
-    }
+    if(d.headers?.status !== 'success'){ console.warn('Jamendo error:', d.headers); return []; }
     return (d.results||[]).map(t=>({
-      id: t.id,
-      name: t.name,
-      artist: t.artist_name,
-      album: t.album_name || '—',
-      cover: t.image || '',
-      src: t.audio,
-      download: t.audiodownload || t.audio,
+      id: t.id, name: t.name, artist: t.artist_name,
+      album: t.album_name || '—', cover: t.image || '',
+      src: t.audio, download: t.audiodownload || t.audio,
       duration: t.duration,
       tags: (t.musicinfo?.tags?.genres||[]).concat(t.musicinfo?.tags?.instruments||[]).slice(0,4),
     }));
-  }catch(e){
-    console.error('Fetch error:', e);
-    return [];
-  }
+  }catch(e){ console.error('Fetch error:', e); return []; }
+}
+
+async function fetchAlbums(query='', page=1){
+  if(!CLIENT_ID) return [];
+  const limit = 24, offset = (page-1)*limit;
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID, format: 'json', limit, offset,
+    imagesize: 300, order: query ? 'relevance' : 'popularity_total',
+  });
+  if(query) params.set('namesearch', query);
+  try{
+    const r = await fetch(`${BASE}/albums/?${params}`);
+    const d = await r.json();
+    if(d.headers?.status !== 'success') return [];
+    return (d.results||[]).map(a=>({
+      id: a.id, name: a.name, artist: a.artist_name, cover: a.image||'',
+    }));
+  }catch(e){ return []; }
 }
 
 // ── RENDER ──
@@ -388,9 +448,9 @@ function rndBars(cls,n,mhRange=[5,14]){
 function renderList(){
   const ml = document.getElementById('mainList');
   ml.innerHTML = '';
-  const list = showFav ? TRACKS.filter((_,i)=>favs.has(i)) : TRACKS;
+  const list = currentView==='fav' ? TRACKS.filter((_,i)=>favs.has(i)) : TRACKS;
   if(!list.length){
-    ml.innerHTML = `<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${showFav?'Нет избранных треков':'Ничего не найдено'}</div>`;
+    ml.innerHTML = `<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${currentView==='fav'?'Нет избранных треков':'Ничего не найдено'}</div>`;
     return;
   }
   list.forEach((t,row)=>{
@@ -479,7 +539,44 @@ function renderQueue(){
   });
 }
 
-function updUI(){
+function renderAlbums(append=false){
+  const grid = document.getElementById('albumsGrid');
+  if(!append) grid.innerHTML = '';
+  if(!albumsData.length && !append){
+    grid.innerHTML = `<div class="state-msg" style="grid-column:1/-1"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg>Нет альбомов</div>`;
+    return;
+  }
+  albumsData.forEach(a=>{
+    const card = document.createElement('div');
+    card.className = 'alb-card';
+    card.innerHTML = `<img class="alb-cover" src="${a.cover}" alt="${a.name}" loading="lazy"><div class="alb-info"><div class="alb-name">${a.name}</div><div class="alb-artist">${a.artist}</div></div>`;
+    card.addEventListener('click', ()=>{
+      // при клике на альбом — ищем треки этого артиста
+      currentView='tracks'; currentQuery=a.artist; currentPage=1; TRACKS=[];
+      document.getElementById('searchInput').value=a.artist;
+      document.getElementById('searchClear').style.display='block';
+      showView('tracks');
+      doSearch();
+    });
+    grid.appendChild(card);
+  });
+}
+
+async function doAlbums(append=false){
+  const grid = document.getElementById('albumsGrid');
+  const lmw = document.getElementById('loadMoreAlbumsWrap');
+  if(!append){
+    grid.innerHTML=`<div class="state-msg" style="grid-column:1/-1"><div class="spinner"></div>Загружаем альбомы...</div>`;
+    lmw.style.display='none';
+  }
+  const results = await fetchAlbums(currentQuery, albumsPage);
+  if(append) albumsData=[...albumsData,...results];
+  else albumsData=results;
+  renderAlbums(append);
+  lmw.style.display = results.length===24 ? 'flex' : 'none';
+}
+
+document.getElementById('loadMoreAlbumsBtn').addEventListener('click',()=>{ albumsPage++; doAlbums(true); });
   document.querySelectorAll('.li').forEach(el=>{
     const i = parseInt(el.dataset.idx);
     el.classList.toggle('a', i===cur);
@@ -621,6 +718,7 @@ function renderGenres(){
       document.getElementById('searchInput').value='';
       currentQuery='';
       renderGenres();
+      showView('tracks');
       doSearch();
     });
     gw.appendChild(btn);
@@ -635,13 +733,15 @@ document.getElementById('searchInput').addEventListener('input',e=>{
   searchTimer=setTimeout(()=>{
     currentQuery=v; currentPage=1; TRACKS=[];
     currentGenre=''; renderGenres();
-    doSearch();
+    if(currentView==='albums'){ albumsPage=1; albumsData=[]; doAlbums(); }
+    else { showView('tracks'); doSearch(); }
   },400);
 });
 document.getElementById('searchClear').addEventListener('click',()=>{
   document.getElementById('searchInput').value='';
   document.getElementById('searchClear').style.display='none';
   currentQuery=''; currentPage=1; TRACKS=[];
+  showView('tracks');
   doSearch();
 });
 
@@ -654,8 +754,14 @@ async function doSearch(append=false){
     lmw.style.display='none';
   }
   const results = await fetchTracks(currentQuery, currentGenre, currentPage);
-  if(append) TRACKS=[...TRACKS,...results];
-  else TRACKS=results;
+  // Добавляем свои треки в начало на первой странице без фильтров
+  if(!append && currentPage===1 && !currentQuery && !currentGenre){
+    TRACKS = [...MY_TRACKS, ...results];
+  } else if(append){
+    TRACKS=[...TRACKS,...results];
+  } else {
+    TRACKS=results;
+  }
   if(!TRACKS.length){
     ml.innerHTML=`<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${currentQuery?'По запросу «'+currentQuery+'» ничего не найдено':'Нет треков. Проверь Client ID'}</div>`;
     lmw.style.display='none';
@@ -672,26 +778,52 @@ document.getElementById('loadMoreBtn').addEventListener('click',()=>{
   doSearch(true);
 });
 
+// ── VIEW SWITCHING ──
+function showView(v){
+  currentView = v;
+  document.getElementById('viewTracks').style.display = (v==='albums') ? 'none' : 'block';
+  document.getElementById('viewAlbums').style.display = (v==='albums') ? 'block' : 'none';
+  // sidebar nav
+  ['navAll','navFav','navAlbums'].forEach(id=>document.getElementById(id).classList.remove('a'));
+  if(v==='tracks') document.getElementById('navAll').classList.add('a');
+  else if(v==='fav') document.getElementById('navFav').classList.add('a');
+  else if(v==='albums') document.getElementById('navAlbums').classList.add('a');
+  // mobile nav
+  ['mobBtnAll','mobBtnFav','mobBtnAlbums'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('a'); });
+  if(v==='tracks'){ const el=document.getElementById('mobBtnAll'); if(el) el.classList.add('a'); }
+  else if(v==='fav'){ const el=document.getElementById('mobBtnFav'); if(el) el.classList.add('a'); }
+  else if(v==='albums'){ const el=document.getElementById('mobBtnAlbums'); if(el) el.classList.add('a'); }
+  // search bar visibility
+  document.getElementById('genreWrap').style.display = (v==='albums') ? 'none' : '';
+  if(v==='fav') renderList();
+}
+
+function switchTab(v){
+  showView(v);
+  if(v==='albums'){
+    albumsPage=1; albumsData=[];
+    doAlbums();
+  } else if(v==='tracks' && !TRACKS.length){
+    doSearch();
+  }
+}
+
+document.getElementById('navAll').addEventListener('click',()=>switchTab('tracks'));
+document.getElementById('navFav').addEventListener('click',()=>switchTab('fav'));
+document.getElementById('navAlbums').addEventListener('click',()=>switchTab('albums'));
+
+const mba = document.getElementById('mobBtnAll');
+const mbf = document.getElementById('mobBtnFav');
+const mbAlb = document.getElementById('mobBtnAlbums');
+if(mba) mba.addEventListener('click',()=>switchTab('tracks'));
+if(mbf) mbf.addEventListener('click',()=>switchTab('fav'));
+if(mbAlb) mbAlb.addEventListener('click',()=>switchTab('albums'));
+
 // ── API KEY ──
 function checkApiKey(){
   renderGenres();
-  doSearch();
+  doSearch(); // автозагрузка при открытии
 }
-// нет кнопки сохранения — ключ зашит
-
-// ── MOBILE NAV ──
-function switchTab(fav){
-  showFav=fav;
-  document.getElementById('mobBtnAll').classList.toggle('a',!fav);
-  document.getElementById('mobBtnFav').classList.toggle('a',fav);
-  document.getElementById('navAll').classList.toggle('a',!fav);
-  document.getElementById('navFav').classList.toggle('a',fav);
-  renderList();
-}
-document.getElementById('mobBtnAll').addEventListener('click',()=>switchTab(false));
-document.getElementById('mobBtnFav').addEventListener('click',()=>switchTab(true));
-document.getElementById('navAll').addEventListener('click',()=>switchTab(false));
-document.getElementById('navFav').addEventListener('click',()=>switchTab(true));
 
 // ── INIT ──
 checkApiKey();
