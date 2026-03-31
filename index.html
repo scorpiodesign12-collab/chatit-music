@@ -5,9 +5,36 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Chatit Music</title>
 <meta name="theme-color" content="#0a0a0a">
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getDatabase, ref, set, get, push, onValue, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+  // ── YOUR FIREBASE CONFIG ──
+  // Replace with YOUR config from console.firebase.google.com
+  const firebaseConfig = {
+    apiKey: "AIzaSyPLACEHOLDER",
+    authDomain: "chatit-music.firebaseapp.com",
+    databaseURL: "https://chatit-music-default-rtdb.firebaseio.com",
+    projectId: "chatit-music",
+    storageBucket: "chatit-music.appspot.com",
+    messagingSenderId: "000000000000",
+    appId: "1:000000000000:web:placeholder"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  // Expose globally so main script can use it
+  window._fb = { db, ref, set, get, push, onValue, serverTimestamp };
+  window._fbReady = true;
+  document.dispatchEvent(new Event('firebase-ready'));
+</script>
+
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a0a;color:#e8e8e8;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a0a;color:#e8e8e8;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 :root{
   --bg:#0a0a0a;--sb:#111;--card:#181818;--border:#222;--sub:#666;--muted:#333;
   --accent:#fff;--accent2:#bbb;--hover:#1e1e1e;--radius:12px;
@@ -89,7 +116,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,Blink
 .lv{padding:10px 20px 20px}
 .lh{display:grid;grid-template-columns:32px 1fr 130px 90px 36px 50px;gap:8px;align-items:center;padding:0 8px 8px;border-bottom:1px solid var(--border);margin-bottom:4px;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.8px;text-transform:uppercase}
 .li{display:grid;grid-template-columns:32px 1fr 130px 90px 36px 50px;gap:8px;align-items:center;padding:7px 8px;border-radius:10px;cursor:pointer;transition:background .2s;margin-bottom:1px}
-.li:hover{background:var(--hover)}
+.li:hover{background:var(--hover);transform:translateX(2px)}.li{transition:background .2s,transform .15s var(--trans)}
 .li.a{background:var(--card)}
 .li-num{font-size:12px;color:var(--muted);text-align:center;position:relative}
 .li.a .li-num-t{display:none}
@@ -232,17 +259,55 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,Blink
 
 /* Mobile layout */
 @media(max-width:699px){
-  .fp-content{padding:env(safe-area-inset-top,60px) 0 env(safe-area-inset-bottom,20px);overflow-y:hidden;justify-content:space-between}
-  .fp-left-side{display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;padding:0 20px}
-  .fp-right-side{padding:0 24px 16px;flex-shrink:0}
-  .fp-album-art{width:min(280px,72vw)!important;height:min(280px,72vw)!important;margin-bottom:20px}
-  .fp-name{font-size:22px}
-  .fp-artist{font-size:14px}
-  .fp-queue-wrap{display:none}
+  .fp-inner{flex-direction:column}
+  .fp-content{
+    padding:0;
+    flex-direction:column;
+    overflow-y:hidden;
+    justify-content:space-between;
+    max-width:100%;
+    width:100%;
+    height:100%;
+    padding-top:calc(env(safe-area-inset-top,0px) + 60px);
+    padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+    box-sizing:border-box;
+  }
+  .fp-left-side{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    flex:1;
+    padding:0 24px;
+    min-height:0;
+  }
+  .fp-album-art{
+    width:min(72vw,320px)!important;
+    height:min(72vw,320px)!important;
+    margin:0;
+    border-radius:20px;
+    box-shadow:0 24px 64px rgba(0,0,0,.9);
+    transition:transform .3s var(--trans);
+  }
+  .fp-album-art.playing-pulse{animation:artPulse 2s ease-in-out infinite}
+  @keyframes artPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
   .fp-wave{display:none}
-  /* Mobile: only show essential controls */
+  .fp-right-side{
+    flex-shrink:0;
+    padding:0 28px;
+    width:100%;
+    box-sizing:border-box;
+  }
+  .fp-track-info{margin-bottom:12px;text-align:center}
+  .fp-name{font-size:22px;text-align:center;font-weight:800}
+  .fp-artist{font-size:14px;text-align:center;margin-bottom:0}
+  .fp-queue-wrap{display:none}
   .fp-dl{display:none!important}
   .fp-tags{display:none!important}
+  .fp-back{top:calc(env(safe-area-inset-top,0px) + 14px);left:16px}
+  .cr{gap:22px;margin-bottom:14px}
+  .pgw{margin-bottom:12px}
+  .vr{margin-bottom:0}
 }
 
 .fp-content{position:relative;z-index:2;display:flex;flex-direction:column;height:100%;padding:70px 32px 32px;justify-content:flex-end;max-width:560px;margin:0 auto;width:100%}
@@ -300,7 +365,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,Blink
 .mob-bar-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--sub);cursor:pointer;font-size:10px;padding:6px 12px;border-radius:8px;transition:color .2s}
 .mob-bar-btn.a{color:#fff}
 .mob-bar-btn svg{width:20px;height:20px;fill:currentColor}
-.mini-player{display:none;position:fixed;bottom:60px;left:8px;right:8px;background:rgba(22,22,22,.96);border:1px solid var(--border);border-radius:14px;z-index:140;padding:10px 14px;align-items:center;gap:11px;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,.5);backdrop-filter:blur(20px)}
+.mini-player{display:none;position:fixed;bottom:62px;left:8px;right:8px;background:rgba(22,22,22,.96);border:1px solid var(--border);border-radius:14px;z-index:140;padding:10px 14px;align-items:center;gap:11px;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,.5);backdrop-filter:blur(20px)}
 .mini-cover{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--border)}
 .mini-info{flex:1;min-width:0}
 .mini-name{font-size:13px;font-weight:600;color:#e8e8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -334,6 +399,34 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,Blink
 }
 
 /* ── TOAST NOTIFICATION ── */
+.add-track-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:20px;background:var(--card);border:1px solid var(--border);color:#bbb;font-size:12px;cursor:pointer;transition:all .2s;font-weight:600;white-space:nowrap;flex-shrink:0}
+.add-track-btn:hover{background:var(--hover);color:#fff;border-color:#555}
+.add-track-btn svg{width:14px;height:14px;fill:currentColor}
+@media(max-width:700px){.add-track-label{display:none}.add-track-btn{padding:7px 9px;border-radius:50%}}
+.add-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:none;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.add-modal-overlay.open{display:flex}
+.add-modal-box{background:#181818;border-radius:20px;padding:28px;width:90%;max-width:440px;border:1px solid var(--border);animation:fadeScaleIn .3s var(--trans)}
+.add-modal-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:6px}
+.add-modal-sub{font-size:13px;color:#666;margin-bottom:20px}
+.add-field{margin-bottom:14px}
+.add-field label{display:block;font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.add-field input{width:100%;background:#111;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;color:#fff;outline:none;transition:border-color .2s;font-family:inherit}
+.add-field input:focus{border-color:#555}
+.add-field input::placeholder{color:#444}
+.add-cover-zone{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;color:#555;font-size:13px;margin-bottom:14px}
+.add-cover-zone:hover{border-color:#555;color:#888}
+.add-cover-zone.has-img{border-style:solid;border-color:#444}
+.add-cover-preview{width:80px;height:80px;border-radius:8px;object-fit:cover;margin:0 auto 8px;display:block}
+.add-file-zone{border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;color:#555;font-size:13px;margin-bottom:20px}
+.add-file-zone:hover{border-color:#555;color:#888}
+.add-file-zone.has-file{border-color:#fff;color:#fff}
+.add-progress{height:3px;background:var(--border);border-radius:99px;margin-bottom:14px;display:none}
+.add-progress-fill{height:100%;background:#fff;border-radius:99px;width:0%;transition:width .3s}
+.add-submit-btn{width:100%;padding:13px;border-radius:12px;border:none;background:#fff;color:#000;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+.add-submit-btn:hover{background:#ddd}
+.add-submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.add-cancel-link{display:block;text-align:center;margin-top:12px;font-size:13px;color:#555;cursor:pointer;transition:color .2s}
+.add-cancel-link:hover{color:#fff}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:#fff;color:#000;padding:10px 18px;border-radius:24px;font-size:13px;font-weight:600;z-index:700;opacity:0;transition:all .3s var(--trans);pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.3)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -342,9 +435,24 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,Blink
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .scale-in{animation:scaleIn .3s var(--trans)}
 @keyframes scaleIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ── SETUP BANNER ── */
+.setup-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1200;border-bottom:2px solid #ff9500;padding:14px 20px;color:#ffb347;font-size:13px;line-height:1.6}
+.setup-banner.show{display:block}
+.setup-banner strong{color:#fff}
+.setup-banner a{color:#ffcc66;text-decoration:underline}
+.setup-banner .sb-close{float:right;cursor:pointer;font-size:18px;line-height:1;margin-left:12px;color:#888}
+.setup-banner.show ~ .app{margin-top:80px;height:calc(100dvh - 80px)}
 </style>
 </head>
 <body>
+
+<div class="setup-banner" id="setupBanner">
+  <span class="sb-close" onclick="this.parentElement.classList.remove('show')">✕</span>
+  <strong>⚙️ Настройка Firebase нужна</strong> — чтобы треки видели все пользователи.<br>
+  <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → создай проект → Realtime Database → скопируй конфиг и вставь в начало файла вместо <code>PLACEHOLDER</code>. 
+  <a href="#" onclick="document.getElementById('setupBanner').classList.remove('show');return false">Скрыть</a>
+</div>
 <div class="app">
   <aside class="sidebar">
     <div class="sb-head"><div class="logo">Chatit<em>Music</em></div></div>
@@ -380,6 +488,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,Blink
         <button class="search-clear" id="searchClear">✕</button>
       </div>
       <div class="genre-wrap" id="genreWrap"></div>
+      <button class="add-track-btn" id="addTrackBtn" title="Добавить трек">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        <span class="add-track-label">Добавить трек</span>
+      </button>
     </header>
     <div class="content" id="content">
       <div id="viewTracks">
@@ -533,6 +645,43 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,Blink
   </div>
 </div>
 
+
+<!-- ADD TRACK MODAL -->
+<div class="add-modal-overlay" id="addTrackModal">
+  <div class="add-modal-box">
+    <div class="add-modal-title">Добавить трек</div>
+    <div class="add-modal-sub">Трек сразу увидят все пользователи на любом устройстве 🌍</div>
+    <div class="add-field">
+      <label>Название трека *</label>
+      <input type="text" id="atTrackName" placeholder="Например: Bohemian Rhapsody" maxlength="80">
+    </div>
+    <div class="add-field">
+      <label>Исполнитель *</label>
+      <input type="text" id="atArtistName" placeholder="Например: Queen" maxlength="60">
+    </div>
+    <div class="add-field">
+      <label>Альбом (необязательно)</label>
+      <input type="text" id="atAlbumName" placeholder="Например: A Night at the Opera" maxlength="60">
+    </div>
+    <label style="font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Обложка трека (необязательно)</label>
+    <div class="add-cover-zone" id="atCoverZone">
+      <div id="atCoverContent">
+        <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#444;margin-bottom:8px;display:block;margin:0 auto 8px"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+        Нажми чтобы выбрать обложку
+      </div>
+    </div>
+    <input type="file" id="atCoverFile" accept="image/*" style="display:none">
+    <label style="font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;margin-top:14px">Аудиофайл MP3 *</label>
+    <div class="add-file-zone" id="atFileZone">
+      <svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#444;margin-bottom:6px;display:block;margin:0 auto 6px"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+      <span id="atFileName">Нажми чтобы выбрать MP3</span>
+    </div>
+    <input type="file" id="atAudioFile" accept="audio/mp3,audio/mpeg,.mp3" style="display:none">
+    <div class="add-progress" id="atProgress"><div class="add-progress-fill" id="atProgressFill"></div></div>
+    <button class="add-submit-btn" id="atSubmitBtn">Опубликовать трек</button>
+    <div class="add-cancel-link" id="atCancelBtn">Отмена</div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <div id="errBanner" style="display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a0a0a;border:1px solid #442;color:#ff8844;padding:10px 18px;border-radius:10px;font-size:13px;z-index:300;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5)"></div>
 <audio id="au" preload="none" style="display:none" crossorigin="anonymous"></audio>
@@ -574,7 +723,7 @@ const EMINEM_TRACKS = [
   {id:'my6',name:'Curtains Close (Skit)',artist:'Eminem',album:'The Eminem Show',cover:EMINEM_SHOW_COVER,src:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',download:CDN+'Eminem_-_Curtains_Close_bfnvfk.mp3',duration:62,tags:['hip-hop'],explicit:false},
   {id:'my7',name:"My Dad's Gone Crazy",artist:'Eminem feat. Hailie Jade',album:'The Eminem Show',cover:EMINEM_SHOW_COVER,src:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3',download:CDN+'Eminem_feat._Hailie_Jade_-_My_Dad_s_Gone_Crazy_akyjej.mp3',duration:267,tags:['hip-hop'],explicit:true},
   {id:'my8',name:"'Till I Collapse",artist:'Eminem feat. Nate Dogg',album:'The Eminem Show',cover:EMINEM_SHOW_COVER,src:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',download:CDN+'Eminem_feat._Nate_Dogg_-_Till_I_Collapse_q0zpdo.mp3',duration:297,tags:['hip-hop'],explicit:true},
-  {id:'my9',name:'Superman',artist:'Eminem feat. Dina Rae',album:'The Eminem Show',cover:EMINEM_SHOW_COVER,src:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',download:CDN+'Eminem_feat._Dina_Rae_-_Superman_bbdou.mp3',duration:350,tags:['hip-hop'],explicit:true},
+  {id:'my9',name:'Superman',artist:'Eminem feat. Dina Rae',album:'The Eminem Show',cover:EMINEM_SHOW_COVER,src:CDN+'Eminem_feat._Dina_Rae_-_Superman_blxiou.mp3',download:CDN+'Eminem_feat._Dina_Rae_-_Superman_blxiou.mp3',duration:350,tags:['hip-hop'],explicit:true},
   {id:'my10',name:'When The Music Stops',artist:'Eminem feat. D12',album:'The Eminem Show',cover:EMINEM_SHOW_COVER,src:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',download:CDN+'Eminem_feat._D12_-_When_The_Music_Stops_xnveb1.mp3',duration:269,tags:['hip-hop'],explicit:true},
   {id:'my11',name:'White America',artist:'Eminem',album:'The Eminem Show',cover:EMINEM_SHOW_COVER,src:CDN+'Eminem_-_White_America_rfazrr.mp3',download:CDN+'Eminem_-_White_America_rfazrr.mp3',duration:300,tags:['hip-hop'],explicit:true},
   {id:'my12',name:'Sing For The Moment',artist:'Eminem',album:'The Eminem Show',cover:EMINEM_SHOW_COVER,src:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',download:CDN+'Eminem_-_Sing_For_The_Moment_yowc8q.mp3',duration:340,tags:['hip-hop'],explicit:false},
@@ -588,39 +737,38 @@ const EMINEM_TRACKS = [
   {id:'my20',name:'Business (Instrumental)',artist:'Eminem',album:'The Eminem Show',cover:EMINEM_SHOW_COVER,src:CDN+'Eminem_-_Business_dwoo8n.mp3',download:CDN+'Eminem_-_Business_dwoo8n.mp3',duration:252,tags:['hip-hop'],explicit:false},
 ];
 const HS_TRACKS = [
-  {id:'hs1',name:'Красивая',artist:'ANGUSH',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ANGUSH_-_Krasavitsa_m6qfi0.mp3',download:CDN+'ANGUSH_-_Krasavitsa_m6qfi0.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs2',name:'Middle Of The Night',artist:'ELLEY DUHE',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ELLEY_DUHE_-_MIDDLE_OF_THE_NIGHT_h81mv.mp3',download:CDN+'ELLEY_DUHE_-_MIDDLE_OF_THE_NIGHT_h81mv.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs3',name:'No Use',artist:'Dua Lipa',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Dua_Lipa_-_No_Use_s1sytj.mp3',download:CDN+'Dua_Lipa_-_No_Use_s1sytj.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs4',name:'Пляска',artist:'Deltas',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Deltas_-_Gnili_Placska_snvredo.mp3',download:CDN+'Deltas_-_Gnili_Placska_snvredo.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs5',name:'Night Away',artist:'Deltas ft. Wold',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Deltas_ft_Wold_-_Night_Away_onotmh.mp3',download:CDN+'Deltas_ft_Wold_-_Night_Away_onotmh.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs6',name:'Bam Bam',artist:'Alex Ferrari',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Alex_Ferrari_-_Bam_Bam_Bam_Bam_Bam_2_Nxt9.mp3',download:CDN+'Alex_Ferrari_-_Bam_Bam_Bam_Bam_Bam_2_Nxt9.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs7',name:'Safe And Sound',artist:'Capital Cities',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Capital_Cities_-_Safe_And_Sound_dm0xp0.mp3',download:CDN+'Capital_Cities_-_Safe_And_Sound_dm0xp0.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs8',name:'Молчасок',artist:'Васта Мэтс',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Basra_Mats_Inst_-_Molchasok_hardstyle_remix_qrly9z.mp3',download:CDN+'Basra_Mats_Inst_-_Molchasok_hardstyle_remix_qrly9z.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs9',name:"Party Don't Stop",artist:'DJ TBJ',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'DJTBJs_-_PARTY_DONT_STOP_yd0cat.mp3',download:CDN+'DJTBJs_-_PARTY_DONT_STOP_yd0cat.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs10',name:'Нету Нет',artist:'Банька FADEEJ',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Banka_FADEEJ_-_Netu_net_n9w1n.mp3',download:CDN+'Banka_FADEEJ_-_Netu_net_n9w1n.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs11',name:'Mil Mil',artist:'Ненасность',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Nenasnost_-_Mil_Mil_Mil_id4OoS.mp3',download:CDN+'Nenasnost_-_Mil_Mil_Mil_id4OoS.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs12',name:'Oath x Sadness Hardstyle',artist:'ZYZZ Mac',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ZYZZ_Mac_-_Zoro_s_Oath_x_Sadness_Hardstyle_Flare_Hardstyle_V_ote2ns.mp3',download:CDN+'ZYZZ_Mac_-_Zoro_s_Oath_x_Sadness_Hardstyle_Flare_Hardstyle_V_ote2ns.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs13',name:'Эмоциональная',artist:'yungelkgatol',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'yungelkgatol_-_Emotsionalnaya_-_lltop_synzygl.mp3',download:CDN+'yungelkgatol_-_Emotsionalnaya_-_lltop_synzygl.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs14',name:'So What Ultra Flare Hardstyle',artist:'ZYZZ Mac',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ZYZZ_Mac_-_So_What_Ultra_Flare_Hardstyle_V_seq1jl.mp3',download:CDN+'ZYZZ_Mac_-_So_What_Ultra_Flare_Hardstyle_V_seq1jl.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs15',name:'Breathe Ultra Flare Hardstyle',artist:'ZYZZ Mac',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ZYZZ_Mac_-_Breathe_Ultra_Flare_Hardstyle_V_urlown1.mp3',download:CDN+'ZYZZ_Mac_-_Breathe_Ultra_Flare_Hardstyle_V_urlown1.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs16',name:'Levels',artist:'Zyzzz x Avicii',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Zyzzz_-_Avicii_-_Levels_ljr1mij.mp3',download:CDN+'Zyzzz_-_Avicii_-_Levels_ljr1mij.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs17',name:'405 Anthem',artist:'ZYZZ Mac',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ZYZZ_Mac_-_405_Anthem_th2lco2.mp3',download:CDN+'ZYZZ_Mac_-_405_Anthem_th2lco2.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs18',name:'Eva',artist:'Yanissimo',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Yanissimo_-_EVA_0_2_lY43wi.mp3',download:CDN+'Yanissimo_-_EVA_0_2_lY43wi.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs19',name:"Don't Let Me Down Hardstyle",artist:'zyzzz',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'zyzz_-_Don_t_let_me_down_hardstyle_remix_1SZI9u.mp3',download:CDN+'zyzz_-_Don_t_let_me_down_hardstyle_remix_1SZI9u.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs20',name:'Legends Never Die',artist:'League of Legends',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'League_of_Legends_-_Legends_Never_Die_ft_Against_The_Current_1my4vm.mp3',download:CDN+'League_of_Legends_-_Legends_Never_Die_ft_Against_The_Current_1my4vm.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs21',name:'Anadiola',artist:'Yosuf',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Yosuf_-_Anadiola_La_p8dl.mp3',download:CDN+'Yosuf_-_Anadiola_La_p8dl.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs22',name:'Rush to Core',artist:'Tiillum x Rowdy',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Tiillum_Rowdy_-_Rush_to_Core_1m0s0s.mp3',download:CDN+'Tiillum_Rowdy_-_Rush_to_Core_1m0s0s.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs23',name:'Hey Baby',artist:'Yosuf',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Yosuf_-_Hey_Baby_qrdyts.mp3',download:CDN+'Yosuf_-_Hey_Baby_qrdyts.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs24',name:'Speed Of Light Flare',artist:'SICKKUNT SOUNDS x Zyzz',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'SICKKUNT_SOUNDS_-_Zyzz_Speed_Of_Light_-_Flare_Hardstyle_V_aor22a.mp3',download:CDN+'SICKKUNT_SOUNDS_-_Zyzz_Speed_Of_Light_-_Flare_Hardstyle_V_aor22a.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs25',name:'Я одна',artist:'Gasha Dith',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Gasha_Dith_-_Ya_odna_p0tu82.mp3',download:CDN+'Gasha_Dith_-_Ya_odna_p0tu82.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs26',name:'Я буду с тобой',artist:'Gasha Dith',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Gasha_Dith_-_Ya_budu_s_toboi_svyrxy.mp3',download:CDN+'Gasha_Dith_-_Ya_budu_s_toboi_svyrxy.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs27',name:'Kurwa',artist:'Saptum',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Saptum_-_Kurwa_hpbhmn.mp3',download:CDN+'Saptum_-_Kurwa_hpbhmn.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs28',name:'Not Our Time',artist:'SICKKUNT SOUNDS x ZYZZ Mac',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'SICKKUNT_SOUNDS_-_ZYZZ_Mac_-_Not_Our_Time_ls3bth.mp3',download:CDN+'SICKKUNT_SOUNDS_-_ZYZZ_Mac_-_Not_Our_Time_ls3bth.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs29',name:'Vamos A La Playa',artist:'Loona',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Loona_-_Vamos_A_La_Playa_1hlesw.mp3',download:CDN+'Loona_-_Vamos_A_La_Playa_1hlesw.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs30',name:'Locked Out of Heaven Hardstyle',artist:'Ryan Cavatiao',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Ryan_Cavatiao_-_Locked_Out_of_Heaven_hardstyle_remix_blhxd9.mp3',download:CDN+'Ryan_Cavatiao_-_Locked_Out_of_Heaven_hardstyle_remix_blhxd9.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs31',name:'You Say',artist:'Kiruli x ANILINS',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Kiruli_x_ANILINS_-_You_Say_Rui_vrmemI.mp3',download:CDN+'Kiruli_x_ANILINS_-_You_Say_Rui_vrmemI.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs32',name:'GYM Telephone Hardstyle',artist:'Lady Gaga x Beyonce',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Lady_Gaga_Beyonce_-_GYM_HARDSTYLE_Telephone_Remix_mwnest.mp3',download:CDN+'Lady_Gaga_Beyonce_-_GYM_HARDSTYLE_Telephone_Remix_mwnest.mp3',duration:210,tags:['hardstyle'],explicit:false},
-  {id:'hs33',name:'BRUTAL HARDSTYLE',artist:'Ill Beas x WOLD9 x Mac',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Ill_beas_wolding_x_Mac_-_BRUTAL_HARDSTYLE_mmy7v.mp3',download:CDN+'Ill_beas_wolding_x_Mac_-_BRUTAL_HARDSTYLE_mmy7v.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs1',name:'Красивая',artist:'ANGUSH',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ANGUISH_влад_пиво_ЯРЧЕ_СОЛНЦА_ily_-_Krasavitsa_m6qfr0.mp3',download:CDN+'ANGUISH_влад_пиво_ЯРЧЕ_СОЛНЦА_ily_-_Krasavitsa_m6qfr0.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs2',name:'Middle Of The Night',artist:'ELLEY DUHE',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ELLEY_DUHE_-_MIDDLE_OF_THE_NIGHT_hb1h4v.mp3',download:CDN+'ELLEY_DUHE_-_MIDDLE_OF_THE_NIGHT_hb1h4v.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs3',name:'No Lie',artist:'Dua Lipa',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Dua_Lipa_-_No_Lie_s1sykj.mp3',download:CDN+'Dua_Lipa_-_No_Lie_s1sykj.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs4',name:'Гимн Дахака',artist:'Deilas',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Deilas_-_Гимн_Дахака_uvvwdo.mp3',download:CDN+'Deilas_-_Гимн_Дахака_uvvwdo.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs5',name:'Night Away',artist:'Deilas X Wold',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Deilas_X_Wold_helpsisleet_-_NIGHT_AWAY_onckmh.mp3',download:CDN+'Deilas_X_Wold_helpsisleet_-_NIGHT_AWAY_onckmh.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs6',name:'Bara Bara Bere Bere',artist:'Alex Ferrari',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Alex_Ferrari_-_Bara_Bara_Bere_Bere_zhjus9.mp3',download:CDN+'Alex_Ferrari_-_Bara_Bara_Bere_Bere_zhjus9.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs7',name:'Safe And Sound',artist:'Capital Cities',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Capital_Cities_-_Safe_And_Sound_dmjxq0.mp3',download:CDN+'Capital_Cities_-_Safe_And_Sound_dmjxq0.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs8',name:'Медлячок (Hardstyle)',artist:'Баста Maks.rmx',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Баста_Maks.rmx_-_Медлячок_hardstyle_remix_qyly5z.mp3',download:CDN+'Баста_Maks.rmx_-_Медлячок_hardstyle_remix_qyly5z.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs9',name:'Party Don\'t Stop',artist:'山下智久',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'山下智久_-_PARTY_DON_T_STOP_vdjoat.mp3',download:CDN+'山下智久_-_PARTY_DON_T_STOP_vdjoat.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs10',name:'Mi Mi Mi',artist:'Неизвестен',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Неизвестен_-_Mi_Mi_Mi_jd46o5.mp3',download:CDN+'Неизвестен_-_Mi_Mi_Mi_jd46o5.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs11',name:'Zoro\'s Oath x Sadness Hardstyle',artist:'ZYZZ & Mqx',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ZYZZ___Mqx_-_Zoro_s_Oath_x_Sadness_Hardstyle_Rare_Hardstyle_Ψ_ofe2ns.mp3',download:CDN+'ZYZZ___Mqx_-_Zoro_s_Oath_x_Sadness_Hardstyle_Rare_Hardstyle_Ψ_ofe2ns.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs12',name:'ЗимойБезШапки - Лёха',artist:'yungalligator',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'yungalligator_-_ЗимойБезШапки_-_Лёха_eyxagi.mp3',download:CDN+'yungalligator_-_ЗимойБезШапки_-_Лёха_eyxagi.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs13',name:'So What Ultra Rare Hardstyle',artist:'ZYZZ & Mqx',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ZYZZ___Mqx_-_So_What_Ultra_Rare_Hardstyle_Ψ_seojrj.mp3',download:CDN+'ZYZZ___Mqx_-_So_What_Ultra_Rare_Hardstyle_Ψ_seojrj.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs14',name:'Breathe Ultra Rare Hardstyle',artist:'ZYZZ & Mqx',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ZYZZ___Mqx_-_Breathe_Ultra_Rare_Hardstyle_Ψ_ufuwmi.mp3',download:CDN+'ZYZZ___Mqx_-_Breathe_Ultra_Rare_Hardstyle_Ψ_ufuwmi.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs15',name:'Levels (Hardstyle)',artist:'Zyzz x Avicii',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Zyzz_-_Avicii_-_Levels_jyfmuj.mp3',download:CDN+'Zyzz_-_Avicii_-_Levels_jyfmuj.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs16',name:'405 Anthem',artist:'ZYZZ & Mqx',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'ZYZZ___Mqx_-_405_Anthem_rh2ncc.mp3',download:CDN+'ZYZZ___Mqx_-_405_Anthem_rh2ncc.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs17',name:'EVA 0.2',artist:'Yanissimo',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Yanissimo_-_EVA_0.2_t743wi.mp3',download:CDN+'Yanissimo_-_EVA_0.2_t743wi.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs18',name:"Don't Let Me Down (Hardstyle)",artist:'zyzz',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'zyzz_-_Don_t_let_me_down_hardstyle_remix_t5219u.mp3',download:CDN+'zyzz_-_Don_t_let_me_down_hardstyle_remix_t5219u.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs19',name:'Legends Never Die',artist:'League of Legends ft. Against The Current',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'League_of_Legends_-_Legends_Never_Die_ft._Against_The_Current_fmy4wm.mp3',download:CDN+'League_of_Legends_-_Legends_Never_Die_ft._Against_The_Current_fmy4wm.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs20',name:'Anadrol',artist:'Yosuf',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Yosuf_-_Anadrol_ap9dji.mp3',download:CDN+'Yosuf_-_Anadrol_ap9dji.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs21',name:'Speed Of Light (Rare Hardstyle)',artist:'SICKKUNT SOUNDS x Zyzz',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'SICKKUNT_SOUNDS_-_Zyzz___Speed_Of_Light_-_Rare_Hardstyle_Ψ_aor22e.mp3',download:CDN+'SICKKUNT_SOUNDS_-_Zyzz___Speed_Of_Light_-_Rare_Hardstyle_Ψ_aor22e.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs22',name:'Rush to Core',artist:'Tritium Rowdy',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Tritium_Rowdy_-_Rush_to_Core_fn0s0s.mp3',download:CDN+'Tritium_Rowdy_-_Rush_to_Core_fn0s0s.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs23',name:'Hey Baby',artist:'Yosuf',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Yosuf_-_Hey_Baby_qsdyts.mp3',download:CDN+'Yosuf_-_Hey_Baby_qsdyts.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs24',name:'Я одна',artist:'Sasha Dith',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Sasha_Dith_-_Я_одна_p0tu6z.mp3',download:CDN+'Sasha_Dith_-_Я_одна_p0tu6z.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs25',name:'Я буду с тобой',artist:'Sasha Dith',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Sasha_Dith_-_Я_буду_с_тобой_svyyxy.mp3',download:CDN+'Sasha_Dith_-_Я_буду_с_тобой_svyyxy.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs26',name:'Kurwa',artist:'Septum',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Septum_-_Kurwa_hpbnmn.mp3',download:CDN+'Septum_-_Kurwa_hpbnmn.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs27',name:'Not Our Time',artist:'SICKKUNT SOUNDS x ZYZZ & Mqx',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'SICKKUNT_SOUNDS_-_ZYZZ___Mqx_-_Not_Our_Time_ls3bkh.mp3',download:CDN+'SICKKUNT_SOUNDS_-_ZYZZ___Mqx_-_Not_Our_Time_ls3bkh.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs28',name:'Vamos A La Playa',artist:'Loona',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Loona_-_Vamos_A_La_Playa_lrjesw.mp3',download:CDN+'Loona_-_Vamos_A_La_Playa_lrjesw.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs29',name:'Locked Out of Heaven (Hardstyle)',artist:'Ryan Cavallaro',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Ryan_Cavallaro_-_Locked_Out_of_Heaven_hardstyle_remix_b1vxd9.mp3',download:CDN+'Ryan_Cavallaro_-_Locked_Out_of_Heaven_hardstyle_remix_b1vxd9.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs30',name:'You Say Run',artist:'Maul x AniLifts',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Maul_x_AniLifts_-_You_Say_Run_wmnemi.mp3',download:CDN+'Maul_x_AniLifts_-_You_Say_Run_wmnemi.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs31',name:'GYM Telephone (Hardstyle)',artist:'Lady Gaga x Beyonce',album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Lady_Gaga_Beyonce_-_GYM_HARDSTYLE_Telephone_Hardstyle_Remix_mwmcsk.mp3',download:CDN+'Lady_Gaga_Beyonce_-_GYM_HARDSTYLE_Telephone_Hardstyle_Remix_mwmcsk.mp3',duration:210,tags:['hardstyle'],explicit:false},
+  {id:'hs32',name:'BRUTAL HARDSTYLE',artist:"Ill keep working x Mqx",album:'Hardstyle Mix',cover:HARDSTYLE_COVER,src:CDN+'Ill_keep_working_x_Mqx_-_BRUTAL_HARDSTYLE_tmmy7v.mp3',download:CDN+'Ill_keep_working_x_Mqx_-_BRUTAL_HARDSTYLE_tmmy7v.mp3',duration:210,tags:['hardstyle'],explicit:false},
 ];
 // Shuffle for random home order
 function shuffleArr(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -631,24 +779,89 @@ const MY_ALBUMS = [
 ];
 
 // ═══════════════════════════════════════════════
-// SHARED STATS (window.storage)
+// FIREBASE DB HELPERS
+// ═══════════════════════════════════════════════
+function waitFirebase(){
+  return new Promise(resolve=>{
+    if(window._fbReady) return resolve();
+    document.addEventListener('firebase-ready', resolve, {once:true});
+    setTimeout(resolve, 4000); // fallback timeout
+  });
+}
+async function fbGet(path){
+  await waitFirebase();
+  if(!window._fb) return null;
+  try{
+    const snap = await window._fb.get(window._fb.ref(window._fb.db, path));
+    return snap.exists() ? snap.val() : null;
+  }catch(e){ console.warn('fbGet error',e); return null; }
+}
+async function fbSet(path, val){
+  await waitFirebase();
+  if(!window._fb) return;
+  try{ await window._fb.set(window._fb.ref(window._fb.db, path), val); }
+  catch(e){ console.warn('fbSet error',e); }
+}
+async function fbPush(path, val){
+  await waitFirebase();
+  if(!window._fb) return null;
+  try{
+    const r = await window._fb.push(window._fb.ref(window._fb.db, path), val);
+    return r.key;
+  }catch(e){ console.warn('fbPush error',e); return null; }
+}
+function fbListen(path, cb){
+  waitFirebase().then(()=>{
+    if(!window._fb) return;
+    window._fb.onValue(window._fb.ref(window._fb.db, path), snap=>{
+      cb(snap.exists() ? snap.val() : null);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════
+// SHARED STATS (Firebase)
 // ═══════════════════════════════════════════════
 async function loadSharedStats(){
-  try{const r=await window.storage.get('chatit_playstats',true);_sharedStats=r?JSON.parse(r.value):{};}catch(e){_sharedStats={};}
+  // Try localStorage first (instant load), then Firebase
+  try{ _sharedStats = JSON.parse(localStorage.getItem('chatit_stats')||'{}'); }catch(e){ _sharedStats={}; }
+  try{
+    const val = await fbGet('stats/plays');
+    if(val){ _sharedStats = val; localStorage.setItem('chatit_stats', JSON.stringify(val)); }
+  }catch(e){ /* use localStorage cache */ }
 }
 function getPlayStats(){return _sharedStats;}
 async function incrementPlay(trackId){
-  _sharedStats[trackId]=(_sharedStats[trackId]||0)+1;
-  try{await window.storage.set('chatit_playstats',JSON.stringify(_sharedStats),true);}catch(e){}
+  _sharedStats[trackId] = (_sharedStats[trackId]||0) + 1;
+  try{ localStorage.setItem('chatit_stats', JSON.stringify(_sharedStats)); }catch(e){}
+  try{ await fbSet('stats/plays', _sharedStats); }catch(e){}
   renderTopBanner();
 }
+// Real-time stats listener
+waitFirebase().then(()=>{
+  fbListen('stats/plays', val=>{ _sharedStats = val||{}; renderTopBanner(); });
+});
 loadSharedStats().then(()=>renderTopBanner());
 
 // ═══════════════════════════════════════════════
-// PLAYLISTS (window.storage shared)
+// PLAYLISTS (Firebase + localStorage fallback)
 // ═══════════════════════════════════════════════
+// Each user gets a device ID stored locally; playlists keyed by deviceId
+function getDeviceId(){
+  let id = localStorage.getItem('chatit_device_id');
+  if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('chatit_device_id',id); }
+  return id;
+}
+const DEVICE_ID = getDeviceId();
+
 async function loadPlaylists(){
-  try{const r=await window.storage.get('chatit_playlists',true);_playlists=r?JSON.parse(r.value):[];}catch(e){_playlists=[];}
+  try{
+    const val = await fbGet('playlists/'+DEVICE_ID);
+    _playlists = val ? Object.values(val) : [];
+  }catch(e){
+    // Fallback to localStorage
+    try{ _playlists=JSON.parse(localStorage.getItem('chatit_playlists')||'[]'); }catch(e2){ _playlists=[]; }
+  }
   // Also load shared playlist from URL hash
   const hash=location.hash;
   if(hash.startsWith('#pl:')){
@@ -666,9 +879,12 @@ async function loadPlaylists(){
   renderPlSidebar();
 }
 async function savePlaylists(){
-  try{await window.storage.set('chatit_playlists',JSON.stringify(_playlists),true);}catch(e){
-    localStorage.setItem('chatit_playlists',JSON.stringify(_playlists));
-  }
+  // Convert array to object keyed by id for Firebase
+  const obj={};
+  _playlists.forEach(pl=>{ obj[pl.id]=pl; });
+  try{ await fbSet('playlists/'+DEVICE_ID, obj); }catch(e){}
+  // Always also save to localStorage as fallback
+  try{ localStorage.setItem('chatit_playlists', JSON.stringify(_playlists)); }catch(e){}
 }
 
 function renderPlSidebar(){
@@ -779,7 +995,7 @@ function playPlaylistFrom(plId,idx){
   TRACKS=pl.tracks;
   cur=-1;
   load(idx,true);
-  openPlayer(idx);
+  if(!document.getElementById('fp').classList.contains('open')) openPlayer(idx);
 }
 
 // ═══════════════════════════════════════════════
@@ -923,12 +1139,12 @@ function renderTopBanner(){
   const banner=document.getElementById('topBanner');
   if(currentQuery||currentGenre||currentView!=='tracks'){banner.innerHTML='';return;}
   const stats=getPlayStats();
-  const ranked=MY_TRACKS.map(t=>({...t,plays:stats[t.id]||0})).filter(t=>t.plays>0).sort((a,b)=>b.plays-a.plays).slice(0,8);
+  const allForStats=[...MY_TRACKS,...(TRACKS.filter(t=>t.id&&t.id.startsWith('j')).slice(0,20))];const ranked=allForStats.filter((t,i,a)=>a.findIndex(x=>x.id===t.id)===i).map(t=>({...t,plays:stats[t.id]||0})).filter(t=>t.plays>0).sort((a,b)=>b.plays-a.plays).slice(0,10);
   if(!ranked.length){
     banner.innerHTML=`<div class="top-banner-title"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>Популярные треки</div><div style="font-size:12px;color:#444;padding-bottom:12px">Слушай треки — здесь появится статистика 🎧</div>`;
     return;
   }
-  const cards=ranked.map(t=>{const idx=TRACKS.findIndex(tr=>tr.id===t.id);return`<div class="top-card" data-idx="${idx}"><img class="top-card-img" src="${t.cover}" alt="${t.name}" loading="lazy"><div class="top-card-info"><div class="top-card-name">${t.name}</div><div class="top-card-artist">${t.artist}</div><div class="top-card-plays"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${t.plays}</div></div></div>`;}).join('');
+  const cards=ranked.map(t=>{let idx=TRACKS.findIndex(tr=>tr.id===t.id);if(idx<0){TRACKS.unshift(t);idx=0;}return`<div class="top-card" data-idx="${idx}"><img class="top-card-img" src="${t.cover}" alt="${t.name}" loading="lazy"><div class="top-card-info"><div class="top-card-name">${t.name}</div><div class="top-card-artist">${t.artist}</div><div class="top-card-plays"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${t.plays}</div></div></div>`;}).join('');
   banner.innerHTML=`<div class="top-banner-title"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>Популярные треки</div><div class="top-tracks-row">${cards}</div>`;
   banner.querySelectorAll('.top-card').forEach(card=>{card.addEventListener('click',()=>{const idx=parseInt(card.dataset.idx);if(idx>=0)openPlayer(idx);});});
 }
@@ -1032,9 +1248,9 @@ function renderAlbums(append=false){
     card.className='alb-card fade-in';
     card.innerHTML=`<img class="alb-cover" src="${a.cover}" alt="${a.name}" loading="lazy"><div class="alb-info"><div class="alb-name">${a.name}</div><div class="alb-artist">${a.artist}</div></div>`;
     card.addEventListener('click',()=>{
-      // Switch to tracks and show album tracks without touching search bar
       currentPage=1;TRACKS=[];
       currentGenre='';renderGenres();
+      // Don't change search input
       showView('tracks');
       doSearchByArtistOrAlbum(a.name,a.artist);
     });
@@ -1093,8 +1309,10 @@ function setPlaying(s){
   document.getElementById('iPause').style.display=s?'block':'none';
   fpWave.classList.toggle('on',s);
   fpWave.querySelectorAll('.wb').forEach(b=>b.classList.toggle('an',s));
+  // Pulse album art on mobile when playing
+  const art=document.getElementById('fpCover');
+  if(art) art.classList.toggle('playing-pulse',s);
   updUI();
-  // Media Session API
   if(navigator.mediaSession){
     navigator.mediaSession.playbackState=s?'playing':'paused';
   }
@@ -1132,6 +1350,11 @@ function openPlayer(i){
   else if(!playing){au.play();setPlaying(true);}
   const fp=document.getElementById('fp');
   fp.classList.remove('closing');fp.classList.add('open');
+  // Scroll active track into view in sidebar
+  setTimeout(()=>{
+    const activeEl=document.querySelector('.tr.a');
+    if(activeEl) activeEl.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },100);
 }
 
 function closePlayer(){
@@ -1299,10 +1522,178 @@ if(mbPl)mbPl.addEventListener('click',()=>switchTab('playlists'));
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════
+// ADD TRACK FEATURE (Cloudinary Upload)
+// ═══════════════════════════════════════════════
+const CLOUD_NAME = 'dkjrcyiiw';
+const UPLOAD_PRESET = 'chatit_unsigned'; // unsigned preset name
+
+let _atCoverData = '';
+let _atAudioFile = null;
+let _atCoverFile = null;
+
+document.getElementById('addTrackBtn').addEventListener('click', () => {
+  document.getElementById('addTrackModal').classList.add('open');
+  document.getElementById('atTrackName').value = '';
+  document.getElementById('atArtistName').value = '';
+  document.getElementById('atAlbumName').value = '';
+  document.getElementById('atFileName').textContent = 'Нажми чтобы выбрать MP3';
+  document.getElementById('atFileZone').classList.remove('has-file');
+  document.getElementById('atCoverZone').classList.remove('has-img');
+  document.getElementById('atCoverContent').innerHTML = '<svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#444;margin-bottom:8px;display:block;margin:0 auto 8px"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>Нажми чтобы выбрать обложку';
+  document.getElementById('atProgress').style.display = 'none';
+  document.getElementById('atProgressFill').style.width = '0%';
+  document.getElementById('atSubmitBtn').disabled = false;
+  document.getElementById('atSubmitBtn').textContent = 'Опубликовать трек';
+  _atCoverData = ''; _atAudioFile = null; _atCoverFile = null;
+  document.getElementById('atTrackName').focus();
+});
+
+document.getElementById('atCancelBtn').addEventListener('click', () => {
+  document.getElementById('addTrackModal').classList.remove('open');
+});
+
+document.getElementById('atCoverZone').addEventListener('click', () => document.getElementById('atCoverFile').click());
+document.getElementById('atCoverFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  _atCoverFile = f;
+  const r = new FileReader(); r.onload = ev => {
+    _atCoverData = ev.target.result;
+    document.getElementById('atCoverZone').classList.add('has-img');
+    document.getElementById('atCoverContent').innerHTML = `<img class="add-cover-preview" src="${_atCoverData}"><div style="font-size:11px;color:#888">${f.name}</div>`;
+  }; r.readAsDataURL(f);
+});
+
+document.getElementById('atFileZone').addEventListener('click', () => document.getElementById('atAudioFile').click());
+document.getElementById('atAudioFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  _atAudioFile = f;
+  document.getElementById('atFileName').textContent = f.name;
+  document.getElementById('atFileZone').classList.add('has-file');
+});
+
+async function uploadToCloudinary(file, resourceType, onProgress) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', UPLOAD_PRESET);
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`);
+    xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    xhr.onload = () => {
+      try { const d = JSON.parse(xhr.responseText); resolve(d); }
+      catch(e) { reject(e); }
+    };
+    xhr.onerror = () => reject(new Error('Upload failed'));
+    xhr.send(fd);
+  });
+}
+
+document.getElementById('atSubmitBtn').addEventListener('click', async () => {
+  const name = document.getElementById('atTrackName').value.trim();
+  const artist = document.getElementById('atArtistName').value.trim();
+  const album = document.getElementById('atAlbumName').value.trim() || 'Community';
+  if (!name) { document.getElementById('atTrackName').style.borderColor = '#ff4444'; document.getElementById('atTrackName').focus(); return; }
+  if (!artist) { document.getElementById('atArtistName').style.borderColor = '#ff4444'; document.getElementById('atArtistName').focus(); return; }
+  if (!_atAudioFile) { showToast('Выбери MP3 файл'); return; }
+  document.getElementById('atTrackName').style.borderColor = '';
+  document.getElementById('atArtistName').style.borderColor = '';
+  const btn = document.getElementById('atSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Загружаем...';
+  document.getElementById('atProgress').style.display = 'block';
+  try {
+    // Upload cover if provided
+    let coverUrl = '';
+    if (_atCoverFile) {
+      btn.textContent = 'Загружаем обложку...';
+      const coverResult = await uploadToCloudinary(_atCoverFile, 'image', p => {
+        document.getElementById('atProgressFill').style.width = (p * 30) + '%';
+      });
+      coverUrl = coverResult.secure_url || '';
+    }
+    // Upload audio
+    btn.textContent = 'Загружаем трек...';
+    const audioResult = await uploadToCloudinary(_atAudioFile, 'video', p => {
+      document.getElementById('atProgressFill').style.width = (30 + p * 65) + '%';
+    });
+    if (!audioResult.secure_url) throw new Error('No audio URL');
+    document.getElementById('atProgressFill').style.width = '100%';
+    // Build track object
+    const newTrack = {
+      id: 'comm_' + Date.now(),
+      name, artist, album,
+      cover: coverUrl || _atCoverData || '',
+      src: audioResult.secure_url,
+      download: audioResult.secure_url,
+      duration: audioResult.duration || 0,
+      tags: ['community'], explicit: false
+    };
+    // Save to Firebase (shared for all users)
+    try {
+      await fbPush('community_tracks', newTrack);
+    } catch(e) { console.error('Firebase error', e); }
+    // Add to current TRACKS list
+    MY_TRACKS.unshift(newTrack);
+    TRACKS = [...MY_TRACKS, ...TRACKS.filter(t => !t.id.startsWith('my') && !t.id.startsWith('hs') && !t.id.startsWith('comm'))];
+    renderList(); renderTopBanner(); renderSidebar();
+    document.getElementById('addTrackModal').classList.remove('open');
+    showToast('✅ Трек «' + name + '» добавлен!');
+  } catch(e) {
+    console.error(e);
+    btn.disabled = false; btn.textContent = 'Попробовать снова';
+    showToast('Ошибка загрузки. Проверь файл.');
+  }
+});
+
+// Load community tracks on startup
+async function loadCommunityTracks() {
+  try {
+    const val = await fbGet('community_tracks');
+    if (val) {
+      const tracks = Object.values(val);
+      tracks.reverse(); // newest first
+      tracks.forEach(t => {
+        if (!MY_TRACKS.find(m => m.id === t.id)) MY_TRACKS.unshift(t);
+      });
+      // Re-render after loading community tracks
+      if(TRACKS.length) { TRACKS = [...MY_TRACKS, ...TRACKS.filter(t=>t.id.startsWith('j'))]; renderList(); renderTopBanner(); renderSidebar(); }
+    }
+  } catch(e) { console.warn('loadCommunityTracks error', e); }
+  // Live listener: add new tracks as they're uploaded by anyone
+  fbListen('community_tracks', val => {
+    if(!val) return;
+    const tracks = Object.values(val);
+    let added = false;
+    tracks.forEach(t => {
+      if (!MY_TRACKS.find(m => m.id === t.id)) { MY_TRACKS.unshift(t); added = true; }
+    });
+    if(added) { TRACKS = [...MY_TRACKS, ...TRACKS.filter(t=>t.id.startsWith('j'))]; renderList(); renderTopBanner(); }
+  });
+}
+
+loadCommunityTracks();
 renderGenres();
 loadPlaylists().then(()=>{
   doSearch();
 });
+
+// Show setup banner if Firebase not configured
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (!window._fbReady) {
+      document.getElementById('setupBanner').classList.add('show');
+    }
+  }, 3000);
+});
+document.addEventListener('firebase-ready', () => {
+  // Test if we have a real config (not placeholder)
+  const cfg = window._fb?.db?.app?.options;
+  if (cfg && cfg.apiKey && cfg.apiKey.includes('PLACEHOLDER')) {
+    document.getElementById('setupBanner').classList.add('show');
+  }
+});
+
 </script>
 </body>
 </html>
