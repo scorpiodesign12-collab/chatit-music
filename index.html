@@ -414,9 +414,10 @@ body.theme-pink .mini-prog-fill{background:#ff6eb4}
   .lh{display:none}
   .lv{padding:8px 10px}
   .top-banner{padding:12px 10px 4px}
-  .li{grid-template-columns:1fr 36px 44px;gap:6px;padding:8px 6px}
+  .li{grid-template-columns:1fr 36px;gap:6px;padding:8px 6px}
   .li-num,.li-al,.li-plays{display:none}
   .li-cv{width:42px;height:42px}
+  .li-acts{display:none !important}
 }
 /* When mini player visible, push content up */
 .mini-player{display:none}
@@ -454,7 +455,33 @@ body.theme-pink .mini-prog-fill{background:#ff6eb4}
 .toast{position:fixed;bottom:160px;left:50%;transform:translateX(-50%) translateY(10px);background:#fff;color:#000;padding:10px 18px;border-radius:24px;font-size:13px;font-weight:600;z-index:700;opacity:0;transition:all .3s var(--trans);pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.3)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── SMOOTH ANIMATIONS ── */
+/* ── MOBILE TRACK ACTION SHEET ── */
+.mob-action-sheet{position:fixed;inset:0;z-index:400;display:none;align-items:flex-end;justify-content:center}
+.mob-action-sheet.open{display:flex}
+.mob-action-sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+.mob-action-sheet-box{position:relative;z-index:1;background:#1a1a1a;border-radius:22px 22px 0 0;width:100%;max-width:540px;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 8px);animation:slideUp .3s var(--trans)}
+body.theme-white .mob-action-sheet-box{background:#f8f8f8}
+body.theme-pink .mob-action-sheet-box{background:#1e0f18}
+.mob-action-sheet-handle{width:36px;height:4px;background:#444;border-radius:99px;margin:12px auto 0}
+body.theme-white .mob-action-sheet-handle{background:#ccc}
+.mob-action-sheet-track{display:flex;align-items:center;gap:12px;padding:14px 20px 10px}
+.mob-action-sheet-cover{width:46px;height:46px;border-radius:9px;object-fit:cover;flex-shrink:0}
+.mob-action-sheet-name{font-size:14px;font-weight:700;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mob-action-sheet-artist{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.mob-action-sheet-divider{height:1px;background:var(--border);margin:0 16px 4px}
+.mob-action-sheet-btns{display:flex;justify-content:space-around;padding:12px 16px 8px;gap:8px}
+.mob-action-btn{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 10px 12px;cursor:pointer;transition:all .18s;color:var(--accent2)}
+.mob-action-btn:active{transform:scale(.94);background:var(--hover)}
+.mob-action-btn svg{width:22px;height:22px;fill:currentColor}
+.mob-action-btn.fav-on{color:#ff6b9d}
+.mob-action-btn.fav-on svg{fill:#ff6b9d}
+.mob-action-btn span{font-size:11px;font-weight:600;letter-spacing:.2px}
+/* ── FIX: mob-bar not too tall on iPhone ── */
+.mob-bar-btn{min-height:52px;padding:8px 12px}
+.mob-bar-label{font-size:9px}
+/* ── FIX: theme switch no layout thrash ── */
+html{transition:background-color .2s;color-scheme:dark}
+body{transition:background-color .2s,color .2s}
 .fade-in{animation:fadeIn .4s var(--trans)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .scale-in{animation:scaleIn .3s var(--trans)}
@@ -851,6 +878,34 @@ body.theme-pink .album-sheet-track-name { color: #f0d0e0; }
 
 <div class="toast" id="toast"></div>
 <div id="errBanner" style="display:none;position:fixed;bottom:148px;left:50%;transform:translateX(-50%);background:#1a0a0a;border:1px solid #442;color:#ff8844;padding:10px 18px;border-radius:10px;font-size:13px;z-index:300;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5)"></div>
+<div class="mob-action-sheet" id="mobActionSheet">
+  <div class="mob-action-sheet-bg" id="mobActionSheetBg"></div>
+  <div class="mob-action-sheet-box">
+    <div class="mob-action-sheet-handle"></div>
+    <div class="mob-action-sheet-track">
+      <img class="mob-action-sheet-cover" id="mobActionCover" src="" alt="">
+      <div style="min-width:0">
+        <div class="mob-action-sheet-name" id="mobActionName">—</div>
+        <div class="mob-action-sheet-artist" id="mobActionArtist">—</div>
+      </div>
+    </div>
+    <div class="mob-action-sheet-divider"></div>
+    <div class="mob-action-sheet-btns">
+      <button class="mob-action-btn" id="mobActFav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span>Лайк</span>
+      </button>
+      <button class="mob-action-btn" id="mobActPlaylist">
+        <svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 5h-3v5.5a2.5 2.5 0 0 1-5 0A2.5 2.5 0 0 1 12.5 10c.57 0 1.08.19 1.5.51V5h4v2zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>
+        <span>В плейлист</span>
+      </button>
+      <button class="mob-action-btn" id="mobActDl" style="display:none">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        <span>Скачать</span>
+      </button>
+    </div>
+  </div>
+</div>
 <audio id="au" preload="none" style="display:none" crossorigin="anonymous"></audio>
 <input type="file" id="plTrackCoverFile" accept="image/*" style="display:none">
 
@@ -1646,19 +1701,20 @@ au.addEventListener('ended',()=>{
   if(TRACKS[cur]?.id){incrementPlay(TRACKS[cur].id);}
   load((cur+1)%TRACKS.length,true);
 });
-au.addEventListener('error',()=>{
-  if(cur<0)return;
-  const eb=document.getElementById('errBanner');
-  if(eb){eb.textContent='⚠️ Трек «'+TRACKS[cur].name+'» недоступен';eb.style.display='block';setTimeout(()=>eb.style.display='none',3000);}
-  setTimeout(()=>{if(playing)load((cur+1)%TRACKS.length,true);},800);
-});
+// Error handler defined later (in patch section) to handle unavailable tracks with smart skip
+let _tuPending=false;
 au.addEventListener('timeupdate',()=>{
-  if(!au.duration)return;
-  const p=(au.currentTime/au.duration)*100;
-  document.getElementById('pgf').style.width=p+'%';
-  document.getElementById('miniProgFill').style.width=p+'%';
-  document.getElementById('tc').textContent=fmt(au.currentTime);
-  if(navigator.mediaSession)navigator.mediaSession.setPositionState({duration:au.duration,playbackRate:au.playbackRate,position:au.currentTime});
+  if(_tuPending)return;
+  _tuPending=true;
+  requestAnimationFrame(()=>{
+    _tuPending=false;
+    if(!au.duration)return;
+    const p=(au.currentTime/au.duration)*100;
+    document.getElementById('pgf').style.width=p+'%';
+    document.getElementById('miniProgFill').style.width=p+'%';
+    document.getElementById('tc').textContent=fmt(au.currentTime);
+    if(navigator.mediaSession)navigator.mediaSession.setPositionState({duration:au.duration,playbackRate:au.playbackRate,position:au.currentTime});
+  });
 });
 document.getElementById('pgt').addEventListener('click',e=>{
   const r=document.getElementById('pgt').getBoundingClientRect();
@@ -2031,72 +2087,64 @@ function highlightText(text, query) {
 }
 
 // ═══════════════════════════════════════════════
-// OVERRIDE renderList TO ADD HIGHLIGHT + CLOSE PLAYER ON CLICK
+// MOBILE TRACK ACTION SHEET
 // ═══════════════════════════════════════════════
-const _origRenderList = renderList;
-function renderList() {
-  const ml = document.getElementById('mainList');
-  ml.innerHTML = '';
-  const stats = getPlayStats();
-  const list = currentView === 'fav' ? TRACKS.filter((_, i) => favs.has(i)) : TRACKS;
-  if (!list.length) {
-    ml.innerHTML = `<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${currentView === 'fav' ? 'Нет избранных треков' : 'Ничего не найдено'}</div>`;
-    return;
-  }
-  list.forEach((t, row) => {
-    const globalIdx = currentView === 'fav' ? TRACKS.indexOf(t) : row;
-    const isFav = favs.has(globalIdx);
-    const plays = stats[t.id] || 0;
-    const explicitBadge = t.explicit ? '<span class="explicit-badge">М</span>' : '';
-    const q = currentQuery.toLowerCase();
-    const hl = (txt) => highlightText(txt, q);
-    const li = document.createElement('div');
-    li.className = 'li'; li.dataset.idx = globalIdx;
-    li.innerHTML = `
-      <div class="li-num"><span class="li-num-t">${row + 1}</span><div class="lpi">${rndBars('lpb', 3, [4, 12])}</div></div>
-      <div class="li-inf">
-        <img class="li-cv" src="${t.cover}" alt="${t.name}" loading="lazy">
-        <div class="li-mt"><div class="li-n">${hl(t.name)}</div><div class="li-ar">${explicitBadge}${hl(t.artist)}</div></div>
-      </div>
-      <div class="li-al">${hl(t.album)}</div>
-      <div class="li-plays">${plays ? plays + ' ▶' : '—'}</div>
-      <div class="li-acts">
-        <button class="act-btn ${isFav ? 'on' : ''}" data-action="fav" title="Избранное">
-          <svg viewBox="0 0 24 24" fill="${isFav ? '#fff' : 'none'}" stroke="${isFav ? '#fff' : '#666'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        </button>
-        <button class="act-btn" data-action="playlist" title="В плейлист">
-          <svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 5h-3v5.5a2.5 2.5 0 0 1-5 0A2.5 2.5 0 0 1 12.5 10c.57 0 1.08.19 1.5.51V5h4v2zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>
-        </button>
-        ${t.download ? `<button class="act-btn" data-action="dl" title="Скачать"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></button>` : ''}
-      </div>
-      <div class="li-du">${fmt(t.duration)}</div>`;
-    li.addEventListener('click', e => {
-      const btn = e.target.closest('[data-action]');
-      if (btn) {
-        e.stopPropagation();
-        const action = btn.dataset.action;
-        if (action === 'fav') {
-          if (favs.has(globalIdx)) favs.delete(globalIdx); else favs.add(globalIdx);
-          localStorage.setItem('chatit_favs', JSON.stringify([...favs]));
-          updUI();
-        } else if (action === 'playlist') {
-          openAddToPlaylist(t);
-        } else if (action === 'dl') {
-          downloadTrack(t.download, t.name);
-        }
-        return;
-      }
-      // Close fullscreen player if open, then open it for this track
-      openPlayer(globalIdx);
-    });
-    ml.appendChild(li);
-  });
+let _mobActionTrackIdx = -1;
+
+function openMobActionSheet(globalIdx) {
+  const t = TRACKS[globalIdx];
+  if (!t) return;
+  _mobActionTrackIdx = globalIdx;
+  document.getElementById('mobActionCover').src = t.cover;
+  document.getElementById('mobActionName').textContent = t.name;
+  document.getElementById('mobActionArtist').textContent = t.artist;
+  // Fav button state
+  const isFav = favs.has(globalIdx);
+  const favBtn = document.getElementById('mobActFav');
+  favBtn.classList.toggle('fav-on', isFav);
+  favBtn.querySelector('svg').setAttribute('fill', isFav ? '#ff6b9d' : 'none');
+  favBtn.querySelector('svg').setAttribute('stroke', isFav ? '#ff6b9d' : 'currentColor');
+  // Download button
+  document.getElementById('mobActDl').style.display = t.download ? 'flex' : 'none';
+  document.getElementById('mobActionSheet').classList.add('open');
 }
 
+function closeMobActionSheet() {
+  document.getElementById('mobActionSheet').classList.remove('open');
+}
+
+document.getElementById('mobActionSheetBg').addEventListener('click', closeMobActionSheet);
+
+document.getElementById('mobActFav').addEventListener('click', () => {
+  const i = _mobActionTrackIdx;
+  if (i < 0) return;
+  if (favs.has(i)) favs.delete(i); else favs.add(i);
+  localStorage.setItem('chatit_favs', JSON.stringify([...favs]));
+  // Update button state
+  const isFav = favs.has(i);
+  const favBtn = document.getElementById('mobActFav');
+  favBtn.classList.toggle('fav-on', isFav);
+  favBtn.querySelector('svg').setAttribute('fill', isFav ? '#ff6b9d' : 'none');
+  favBtn.querySelector('svg').setAttribute('stroke', isFav ? '#ff6b9d' : 'currentColor');
+  updUI();
+  showToast(isFav ? '❤️ Добавлено в избранное' : 'Убрано из избранного');
+});
+
+document.getElementById('mobActPlaylist').addEventListener('click', () => {
+  const t = TRACKS[_mobActionTrackIdx];
+  if (!t) return;
+  closeMobActionSheet();
+  setTimeout(() => openAddToPlaylist(t), 180);
+});
+
+document.getElementById('mobActDl').addEventListener('click', () => {
+  const t = TRACKS[_mobActionTrackIdx];
+  if (t && t.download) { downloadTrack(t.download, t.name); closeMobActionSheet(); }
+});
+
 // ═══════════════════════════════════════════════
-// VIEW SWITCHING — ADD SETTINGS
+// VIEW SWITCHING — WITH SETTINGS
 // ═══════════════════════════════════════════════
-const _origShowView = showView;
 function showView(v) {
   currentView = v;
   document.getElementById('viewTracks').style.display = (v === 'albums' || v === 'playlists' || v === 'settings') ? 'none' : 'block';
@@ -2119,12 +2167,10 @@ function showView(v) {
   const mobMap = {tracks:'mobBtnAll', fav:'mobBtnFav', albums:'mobBtnAlbums', playlists:'mobBtnPlaylists', settings:'mobBtnSettings'};
   const mb = document.getElementById(mobMap[v]);
   if (mb) mb.classList.add('a');
-  // genreWrap hidden in header // document.getElementById('genreWrap').style.display = (v === 'albums' || v === 'playlists' || v === 'settings') ? 'none' : '';
   if (v === 'fav') renderList();
   if (v === 'settings') renderSettingsView();
 }
 
-const _origSwitchTab = switchTab;
 function switchTab(v) {
   showView(v);
   if (v === 'albums') { albumsPage = 1; albumsData = []; doAlbumsWithSheet(); }
@@ -2144,38 +2190,151 @@ async function doAlbumsWithSheet(append = false) {
   if (results.length === 24) { albumsPage++; doAlbumsWithSheet(true); }
 }
 
-// Hook nav buttons to new switchTab
+// Nav buttons
 document.getElementById('navAll').addEventListener('click', () => switchTab('tracks'));
 document.getElementById('navFav').addEventListener('click', () => switchTab('fav'));
 document.getElementById('navAlbums').addEventListener('click', () => switchTab('albums'));
 document.getElementById('navPlaylists').addEventListener('click', () => switchTab('playlists'));
 const navSettings = document.getElementById('navSettings');
 if (navSettings) navSettings.addEventListener('click', () => switchTab('settings'));
-const mba2 = document.getElementById('mobBtnAll');
-const mbf2 = document.getElementById('mobBtnFav');
-const mbAlb2 = document.getElementById('mobBtnAlbums');
-const mbPl2 = document.getElementById('mobBtnPlaylists');
-const mbSet2 = document.getElementById('mobBtnSettings');
-if (mba2) mba2.addEventListener('click', () => switchTab('tracks'));
-if (mbf2) mbf2.addEventListener('click', () => switchTab('fav'));
-if (mbAlb2) mbAlb2.addEventListener('click', () => switchTab('albums'));
-if (mbPl2) mbPl2.addEventListener('click', () => switchTab('playlists'));
-if (mbSet2) mbSet2.addEventListener('click', () => switchTab('settings'));
+['mobBtnAll','mobBtnFav','mobBtnAlbums','mobBtnPlaylists','mobBtnSettings'].forEach((id,i) => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('click', () => switchTab(['tracks','fav','albums','playlists','settings'][i]));
+});
 
+// ═══════════════════════════════════════════════
+// PATCH renderList — add highlight + mobile long-press/tap action sheet
+// ═══════════════════════════════════════════════
+const _origRenderListFinal = renderList;
+function renderList() {
+  const ml = document.getElementById('mainList');
+  ml.innerHTML = '';
+  const stats = getPlayStats();
+  const isMob = window.innerWidth <= 700;
+  const list = currentView === 'fav' ? TRACKS.filter((_, i) => favs.has(i)) : TRACKS;
+  if (!list.length) {
+    ml.innerHTML = `<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${currentView === 'fav' ? 'Нет избранных треков' : 'Ничего не найдено'}</div>`;
+    return;
+  }
+  const q = currentQuery.toLowerCase();
+  const hl = (txt) => q ? highlightText(txt, q) : txt;
+  let maxPlays = 0, mostPlayedId = null;
+  list.forEach(t => { const p = stats[t.id]||0; if(p>maxPlays){maxPlays=p;mostPlayedId=t.id;} });
+
+  // Event delegation for desktop actions
+  ml.onclick = function(e) {
+    const li = e.target.closest('.li');
+    if (!li) return;
+    const globalIdx = parseInt(li.dataset.idx);
+    const btn = e.target.closest('[data-action]');
+    if (btn) {
+      e.stopPropagation();
+      const action = btn.dataset.action;
+      if (action === 'fav') {
+        if (favs.has(globalIdx)) favs.delete(globalIdx); else favs.add(globalIdx);
+        localStorage.setItem('chatit_favs', JSON.stringify([...favs]));
+        updUI();
+      } else if (action === 'playlist') {
+        openAddToPlaylist(TRACKS[globalIdx]);
+      } else if (action === 'dl') {
+        const t = TRACKS[globalIdx]; if (t) downloadTrack(t.download, t.name);
+      }
+      return;
+    }
+    if (isMob) {
+      // On mobile: short tap plays, ... button opens action sheet
+      openPlayer(globalIdx);
+    } else {
+      openPlayer(globalIdx);
+    }
+  };
+
+  // Mobile: tap on "⋯" button opens action sheet
+  ml.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-action="more"]');
+    if (!btn) return;
+    e.stopPropagation();
+    const li = btn.closest('.li');
+    if (li) openMobActionSheet(parseInt(li.dataset.idx));
+  }, { once: false });
+
+  const CHUNK = 80;
+  const renderChunk = (startRow, endRow) => {
+    const frag = document.createDocumentFragment();
+    for (let row = startRow; row < Math.min(endRow, list.length); row++) {
+      const t = list[row];
+      const globalIdx = currentView === 'fav' ? TRACKS.indexOf(t) : row;
+      const isFav = favs.has(globalIdx);
+      const plays = stats[t.id] || 0;
+      const isTop = mostPlayedId && t.id === mostPlayedId && maxPlays > 0;
+      const li = document.createElement('div');
+      li.className = 'li' + (isTop ? ' most-played' : '');
+      li.dataset.idx = globalIdx;
+      const moreBtn = isMob
+        ? `<button class="act-btn" data-action="more" title="Действия" style="opacity:1"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></button>`
+        : `<button class="act-btn${isFav?' on':''}" data-action="fav" title="Избранное">${isFav?_SVG_FAV_ON:_SVG_FAV_OFF}</button><button class="act-btn" data-action="playlist" title="В плейлист">${_SVG_PL}</button>${t.download?`<button class="act-btn" data-action="dl" title="Скачать">${_SVG_DL}</button>`:''}`;
+      li.innerHTML =
+        `<div class="li-num"><span class="li-num-t">${row+1}</span><div class="lpi">${_BARS_LPB}</div></div>`+
+        `<div class="li-inf"><img class="li-cv" src="${t.cover}" alt="" loading="lazy"><div class="li-mt"><div class="li-n">${hl(t.name)}</div><div class="li-ar">${t.explicit?'<span class="explicit-badge">М</span>':''}${hl(t.artist)}</div></div></div>`+
+        `<div class="li-al">${hl(t.album)}</div>`+
+        `<div class="li-plays">${plays?plays+' ▶':'—'}</div>`+
+        `<div class="li-acts">${moreBtn}</div>`+
+        `<div class="li-du">${fmt(t.duration)}</div>`;
+      frag.appendChild(li);
+    }
+    ml.appendChild(frag);
+    if (endRow < list.length) setTimeout(() => renderChunk(endRow, endRow + CHUNK), 30);
+  };
+  renderChunk(0, CHUNK);
+}
+
+// ═══════════════════════════════════════════════
+// FIX: недоступные треки — пропускаем и играем следующий
+// ═══════════════════════════════════════════════
+let _skipCount = 0;
+const _origAuError = null;
+au.addEventListener('error', () => {
+  if (cur < 0) return;
+  _skipCount++;
+  if (_skipCount > 5) { _skipCount = 0; return; } // stop infinite skip loop
+  const eb = document.getElementById('errBanner');
+  if (eb) { eb.textContent = '⚠️ «' + (TRACKS[cur]?.name||'Трек') + '» недоступен, пропускаем...'; eb.style.display='block'; setTimeout(()=>eb.style.display='none',2500); }
+  // Mark track as broken so we skip it next time too
+  if (TRACKS[cur]) TRACKS[cur]._broken = true;
+  // Auto-skip after short delay
+  setTimeout(() => {
+    // Find next non-broken track
+    let next = (cur + 1) % TRACKS.length;
+    let tries = 0;
+    while (TRACKS[next]?._broken && tries < TRACKS.length) { next = (next+1) % TRACKS.length; tries++; }
+    if (playing) load(next, true);
+  }, 600);
+});
+
+// ═══════════════════════════════════════════════
+// FIX: theme change no layout thrash — defer heavy re-renders
+// ═══════════════════════════════════════════════
+const _origApplyTheme = applyTheme;
+function applyTheme(theme) {
+  // Apply class change synchronously (CSS vars update instantly)
+  currentTheme = theme;
+  document.body.classList.remove('theme-white', 'theme-pink');
+  if (theme === 'white') document.body.classList.add('theme-white');
+  else if (theme === 'pink') document.body.classList.add('theme-pink');
+  localStorage.setItem('chatit_theme', theme);
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.content = theme==='white'?'#f5f5f5':theme==='pink'?'#1a0d14':'#0a0a0a';
+  document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.theme === theme));
+  // No re-render needed — CSS vars handle the visual update
+}
 
 // ═══════════════════════════════════════════════
 // FINAL INIT
 // ═══════════════════════════════════════════════
 renderGenres();
-loadPlaylists().then(()=>{
-  doSearch();
-});
-// Also trigger immediately on page load (fixes blank state on first open)
-document.addEventListener('DOMContentLoaded', () => {
-  if(!TRACKS.length) doSearch();
-});
-
-// Firebase banner removed
+loadPlaylists().then(() => doSearch());
+// DOMContentLoaded backup — only if still empty after 1s
+setTimeout(() => { if (!TRACKS.length) doSearch(); }, 1000);
 </script>
 </body>
 </html>
