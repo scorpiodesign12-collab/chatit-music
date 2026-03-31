@@ -116,7 +116,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,Blink
 .lv{padding:10px 20px 20px}
 .lh{display:grid;grid-template-columns:32px 1fr 130px 90px 36px 50px;gap:8px;align-items:center;padding:0 8px 8px;border-bottom:1px solid var(--border);margin-bottom:4px;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.8px;text-transform:uppercase}
 .li{display:grid;grid-template-columns:32px 1fr 130px 90px 36px 50px;gap:8px;align-items:center;padding:7px 8px;border-radius:10px;cursor:pointer;transition:background .2s;margin-bottom:1px}
-.li:hover{background:var(--hover);transform:translateX(2px)}.li{transition:background .2s,transform .15s var(--trans);contain:layout style}
+.li:hover{background:var(--hover)}.li{transition:background .15s;contain:layout style paint}
 .li.a{background:var(--card)}
 .li-num{font-size:12px;color:var(--muted);text-align:center;position:relative}
 .li.a .li-num-t{display:none}
@@ -1397,63 +1397,71 @@ function renderTopBanner(){
 // ═══════════════════════════════════════════════
 // RENDER LIST
 // ═══════════════════════════════════════════════
+// Precomputed bar strings for performance
+const _BARS_LPB = rndBars('lpb',3,[4,12]);
+const _BARS_MB = rndBars('mb',3,[4,10]);
+const _SVG_FAV_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+const _SVG_FAV_ON = '<svg viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+const _SVG_PL = '<svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 5h-3v5.5a2.5 2.5 0 0 1-5 0A2.5 2.5 0 0 1 12.5 10c.57 0 1.08.19 1.5.51V5h4v2zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>';
+const _SVG_DL = '<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>';
+
 function renderList(){
   const ml=document.getElementById('mainList');
-  ml.innerHTML='';
   const stats=getPlayStats();
   const list=currentView==='fav'?TRACKS.filter((_,i)=>favs.has(i)):TRACKS;
   if(!list.length){
     ml.innerHTML=`<div class="state-msg"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>${currentView==='fav'?'Нет избранных треков':'Ничего не найдено'}</div>`;
     return;
   }
-  // Find the most-played track id
+  // Find most-played
   let maxPlays=0,mostPlayedId=null;
   list.forEach(t=>{const p=stats[t.id]||0;if(p>maxPlays){maxPlays=p;mostPlayedId=t.id;}});
+
+  // Use fragment for batch insert — much faster than appending one by one
+  const frag=document.createDocumentFragment();
+
+  // Use event delegation on the container instead of per-element listeners
+  ml.innerHTML='';
+  ml.onclick=function(e){
+    const li=e.target.closest('.li');
+    if(!li)return;
+    const globalIdx=parseInt(li.dataset.idx);
+    const btn=e.target.closest('[data-action]');
+    if(btn){
+      e.stopPropagation();
+      const action=btn.dataset.action;
+      if(action==='fav'){
+        if(favs.has(globalIdx))favs.delete(globalIdx);else favs.add(globalIdx);
+        localStorage.setItem('chatit_favs',JSON.stringify([...favs]));
+        updUI();
+      } else if(action==='playlist'){
+        openAddToPlaylist(TRACKS[globalIdx]);
+      } else if(action==='dl'){
+        const t=TRACKS[globalIdx];if(t)downloadTrack(t.download,t.name);
+      }
+      return;
+    }
+    openPlayer(globalIdx);
+  };
+
   list.forEach((t,row)=>{
     const globalIdx=currentView==='fav'?TRACKS.indexOf(t):row;
     const isFav=favs.has(globalIdx);
     const plays=stats[t.id]||0;
-    const explicitBadge=t.explicit?'<span class="explicit-badge">М</span>':'';
+    const isTop=mostPlayedId&&t.id===mostPlayedId&&maxPlays>0;
     const li=document.createElement('div');
-    li.className='li';li.dataset.idx=globalIdx;
-    li.innerHTML=`
-      <div class="li-num"><span class="li-num-t">${row+1}</span><div class="lpi">${rndBars('lpb',3,[4,12])}</div></div>
-      <div class="li-inf">
-        <img class="li-cv" src="${t.cover}" alt="${t.name}" loading="lazy">
-        <div class="li-mt"><div class="li-n">${t.name}</div><div class="li-ar">${explicitBadge}${t.artist}</div></div>
-      </div>
-      <div class="li-al">${t.album}</div>
-      <div class="li-plays">${plays?plays+' ▶':'—'}</div>
-      <div class="li-acts">
-        <button class="act-btn ${isFav?'on':''}" data-action="fav" title="Избранное">
-          <svg viewBox="0 0 24 24" fill="${isFav?'#fff':'none'}" stroke="${isFav?'#fff':'#666'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        </button>
-        <button class="act-btn" data-action="playlist" title="В плейлист">
-          <svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 5h-3v5.5a2.5 2.5 0 0 1-5 0A2.5 2.5 0 0 1 12.5 10c.57 0 1.08.19 1.5.51V5h4v2zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>
-        </button>
-        ${t.download?`<button class="act-btn" data-action="dl" title="Скачать"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></button>`:''}
-      </div>
-      <div class="li-du">${fmt(t.duration)}</div>`;
-    li.addEventListener('click',e=>{
-      const btn=e.target.closest('[data-action]');
-      if(btn){
-        e.stopPropagation();
-        const action=btn.dataset.action;
-        if(action==='fav'){
-          if(favs.has(globalIdx))favs.delete(globalIdx);else favs.add(globalIdx);
-          localStorage.setItem('chatit_favs',JSON.stringify([...favs]));
-          updUI();
-        } else if(action==='playlist'){
-          openAddToPlaylist(t);
-        } else if(action==='dl'){
-          downloadTrack(t.download,t.name);
-        }
-        return;
-      }
-      openPlayer(globalIdx);
-    });
-    ml.appendChild(li);
+    li.className='li'+(isTop?' most-played':'');
+    li.dataset.idx=globalIdx;
+    li.innerHTML=
+      `<div class="li-num"><span class="li-num-t">${row+1}</span><div class="lpi">${_BARS_LPB}</div></div>`+
+      `<div class="li-inf"><img class="li-cv" src="${t.cover}" alt="" loading="lazy"><div class="li-mt"><div class="li-n">${t.name}</div><div class="li-ar">${t.explicit?'<span class="explicit-badge">М</span>':''}${t.artist}</div></div></div>`+
+      `<div class="li-al">${t.album}</div>`+
+      `<div class="li-plays">${plays?plays+' ▶':'—'}</div>`+
+      `<div class="li-acts"><button class="act-btn${isFav?' on':''}" data-action="fav" title="Избранное">${isFav?_SVG_FAV_ON:_SVG_FAV_OFF}</button><button class="act-btn" data-action="playlist" title="В плейлист">${_SVG_PL}</button>${t.download?`<button class="act-btn" data-action="dl" title="Скачать">${_SVG_DL}</button>`:''}</div>`+
+      `<div class="li-du">${fmt(t.duration)}</div>`;
+    frag.appendChild(li);
   });
+  ml.appendChild(frag);
 }
 
 function renderSidebar(){
@@ -1529,19 +1537,26 @@ async function doSearchByArtistOrAlbum(albumName,artist){
   renderList();renderTopBanner();renderSidebar();renderQueue();
 }
 
+let _prevCur=-1;
 function updUI(){
   const stats=getPlayStats();
+  // Only update prev and current track elements — not ALL of them
+  const toUpdate=new Set([cur,_prevCur].filter(i=>i>=0));
   document.querySelectorAll('.li').forEach(el=>{
     const i=parseInt(el.dataset.idx);
-    el.classList.toggle('a',i===cur);
-    el.querySelectorAll('.lpb').forEach(b=>b.classList.toggle('an',i===cur&&playing));
-    const fb=el.querySelector('[data-action="fav"]');
-    if(fb){const isFav=favs.has(i);fb.classList.toggle('on',isFav);const sv=fb.querySelector('svg');sv.style.fill=isFav?'#fff':'none';sv.style.stroke=isFav?'#fff':'#666';}
-    const plEl=el.querySelector('.li-plays');
-    if(plEl){const t=TRACKS[i];const p=t?stats[t.id]||0:0;plEl.textContent=p?p+' ▶':'—';}
+    const isActive=i===cur;
+    el.classList.toggle('a',isActive);
+    el.querySelectorAll('.lpb').forEach(b=>b.classList.toggle('an',isActive&&playing));
+    if(toUpdate.has(i)){
+      const fb=el.querySelector('[data-action="fav"]');
+      if(fb){const isFav=favs.has(i);fb.classList.toggle('on',isFav);fb.innerHTML=isFav?_SVG_FAV_ON:_SVG_FAV_OFF;}
+      const plEl=el.querySelector('.li-plays');
+      if(plEl){const t=TRACKS[i];const p=t?stats[t.id]||0:0;plEl.textContent=p?p+' ▶':'—';}
+    }
   });
   document.querySelectorAll('.tr').forEach(el=>{const i=parseInt(el.dataset.idx);el.classList.toggle('a',i===cur);el.querySelectorAll('.mb').forEach(b=>b.classList.toggle('an',i===cur&&playing));});
   document.querySelectorAll('.qi').forEach(el=>{el.classList.toggle('a',parseInt(el.dataset.idx)===cur);});
+  _prevCur=cur;
   updMiniPlayer();
 }
 
